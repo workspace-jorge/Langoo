@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Deutsches Tagesgeschehen</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -19,16 +18,71 @@
     --accent-light: #f5e6e4;
     --serif: 'Playfair Display', Georgia, serif;
     --sans: 'DM Sans', system-ui, sans-serif;
+    --sidebar-w: 148px;
   }
 
   body { background: var(--paper); color: var(--ink); font-family: var(--sans); min-height: 100vh; }
 
+  /* ── Layout ── */
+  .app-wrapper { display: flex; min-height: 100vh; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    border-right: 3px double var(--ink);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding-top: 1.25rem;
+  }
+
+  .sidebar-label {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    padding: 0 1rem 0.75rem;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0.5rem;
+  }
+
+  .lang-btn {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    padding: 10px 1rem;
+    background: transparent;
+    border: none;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    font-family: var(--sans);
+    text-align: left;
+    transition: all 0.15s;
+    color: var(--ink-mid);
+  }
+  .lang-btn:hover  { background: white; color: var(--ink); }
+  .lang-btn.active { background: white; color: var(--ink); font-weight: 500; border-left-color: var(--accent); }
+
+  .lang-flag { font-size: 19px; line-height: 1; flex-shrink: 0; }
+  .lang-name { font-size: 12px; line-height: 1.2; }
+
+  /* ── Main ── */
+  .main-content { flex: 1; min-width: 0; }
+
+  /* ── Masthead ── */
   .masthead { border-bottom: 3px double var(--ink); padding: 1.5rem 2rem 1rem; text-align: center; }
   .masthead-kicker { font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 6px; }
-  .masthead-title  { font-family: var(--serif); font-size: clamp(28px,5vw,48px); font-weight: 600; line-height: 1; }
+  .masthead-title  { font-family: var(--serif); font-size: clamp(24px,4vw,44px); font-weight: 600; line-height: 1; }
   .masthead-title span { color: var(--accent); }
   .masthead-sub    { font-size: 11px; color: var(--ink-muted); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 8px; }
 
+  /* ── Controls ── */
   .controls { max-width: 680px; margin: 2rem auto; padding: 0 1.5rem; }
 
   .control-label { font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; display: block; }
@@ -43,20 +97,19 @@
   }
   .pick-btn:hover  { border-color: var(--ink-mid); color: var(--ink); }
   .pick-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-
-  /* Zufall button gets a subtle accent tint when idle */
   .pick-btn.random-btn { border-color: var(--accent); color: var(--accent); }
   .pick-btn.random-btn:hover { background: var(--accent-light); }
   .pick-btn.random-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
-  #levelRow .pick-btn { flex: 1; min-width: 52px; text-align: center; }
+  #levelRow .pick-btn { flex: 1; min-width: 44px; text-align: center; }
 
   .gen-row { display: flex; flex-direction: column; align-items: center; gap: 8px; }
   .gen-btn { padding: 13px 36px; background: var(--accent); color: white; font-family: var(--sans); font-size: 14px; font-weight: 500; letter-spacing: 0.04em; border: none; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; gap: 10px; }
   .gen-btn:hover    { background: #a82e22; }
   .gen-btn:disabled { background: var(--ink-muted); cursor: not-allowed; }
-  .controls-hint { font-size: 12px; color: var(--ink-muted); letter-spacing: 0.04em; }
+  .controls-hint { font-size: 12px; color: var(--ink-muted); letter-spacing: 0.04em; text-align: center; }
 
+  /* ── Loading / Error / Debug ── */
   .loading { display: none; text-align: center; padding: 3rem; color: var(--ink-muted); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
   .loading-dots::after { content: ''; animation: dots 1.2s steps(4,end) infinite; }
   @keyframes dots { 0%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} 100%{content:''} }
@@ -64,6 +117,7 @@
   .error-box { display: none; max-width: 780px; margin: 0 auto 1rem; padding: 12px 16px; background: var(--accent-light); border-left: 3px solid var(--accent); color: var(--accent); font-size: 13px; white-space: pre-wrap; }
   .debug-box { display: none; max-width: 780px; margin: 0 auto 2rem; padding: 12px 16px; background: #fff; border: 1px solid var(--rule); color: var(--ink-mid); font-size: 12px; white-space: pre-wrap; overflow-x: auto; }
 
+  /* ── Article ── */
   .article-outer { display: none; max-width: 780px; margin: 0 auto 4rem; padding: 0 1.5rem; animation: fadeIn 0.5s ease; }
   @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 
@@ -74,13 +128,13 @@
   .rule-thick { border: none; border-top: 2px solid var(--ink); margin: 1.5rem 0; }
   .section-eyebrow { font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
 
-  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-bottom: 2rem; }
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-bottom: 2rem; }
   .vocab-card { background: white; padding: 14px 16px; }
   .vocab-word { font-family: var(--serif); font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
   .vocab-def  { font-size: 13px; color: var(--ink-mid); line-height: 1.5; margin-bottom: 6px; }
   .vocab-ex   { font-size: 12px; color: var(--ink-muted); font-style: italic; line-height: 1.5; border-top: 1px solid var(--rule); padding-top: 6px; margin-top: 6px; }
 
-  .article-headline { font-family: var(--serif); font-size: clamp(22px,4vw,36px); font-weight: 600; line-height: 1.25; margin-bottom: 1rem; }
+  .article-headline { font-family: var(--serif); font-size: clamp(20px,3.5vw,34px); font-weight: 600; line-height: 1.25; margin-bottom: 1rem; }
   .article-byline { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; }
   .article-byline::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
 
@@ -88,8 +142,6 @@
   .article-body p:first-child::first-letter { font-family: var(--serif); font-size: 52px; font-weight: 600; float: left; line-height: 0.85; margin: 4px 8px 0 0; color: var(--accent); }
 
   .questions-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
-  @media (max-width: 600px) { .questions-row { grid-template-columns: 1fr; } }
-
   .questions-block { background: white; border: 1.5px solid var(--ink); padding: 1.5rem; }
   .questions-block h3 { font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
 
@@ -101,125 +153,336 @@
   .next-row { text-align: center; padding-bottom: 2rem; }
   .next-btn { padding: 10px 28px; background: transparent; color: var(--ink); font-family: var(--sans); font-size: 13px; font-weight: 500; border: 1.5px solid var(--ink); cursor: pointer; letter-spacing: 0.04em; }
   .next-btn:hover { background: #ede9df; }
+
+  /* ── Mobile ── */
+  @media (max-width: 640px) {
+    .app-wrapper { flex-direction: column; }
+
+    .sidebar {
+      width: 100%;
+      height: auto;
+      position: static;
+      border-right: none;
+      border-bottom: 3px double var(--ink);
+      flex-direction: row;
+      padding: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    .sidebar-label { display: none; }
+
+    .lang-btn {
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 10px 12px;
+      border-left: none;
+      border-bottom: 3px solid transparent;
+      flex-shrink: 0;
+    }
+    .lang-btn.active { border-left-color: transparent; border-bottom-color: var(--accent); }
+
+    .questions-row { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
 
-<header class="masthead">
-  <p class="masthead-kicker">KI-gestütztes Deutschlernen</p>
-  <h1 class="masthead-title">Deutsches <span>Tages</span>geschehen</h1>
-  <p class="masthead-sub">Nachrichten für Deutschlernende</p>
-</header>
+<div class="app-wrapper">
 
-<div class="controls">
+  <!-- ── Sidebar ── -->
+  <nav class="sidebar" id="sidebar">
+    <span class="sidebar-label">Language</span>
+    <!-- buttons injected by JS -->
+  </nav>
 
-  <span class="control-label">Sprachniveau</span>
-  <div class="pick-row" id="levelRow">
-    <button class="pick-btn" data-level="A1">A1</button>
-    <button class="pick-btn" data-level="A2">A2</button>
-    <button class="pick-btn" data-level="B1">B1</button>
-    <button class="pick-btn active" data-level="B2">B2</button>
-    <button class="pick-btn" data-level="C1">C1</button>
-    <button class="pick-btn" data-level="C2">C2</button>
-  </div>
+  <!-- ── Main ── -->
+  <div class="main-content">
 
-  <span class="control-label">Thema</span>
-  <div class="pick-row" id="categoryRow">
-    <button class="pick-btn" data-category="Politik">Politik</button>
-    <button class="pick-btn" data-category="Wirtschaft">Wirtschaft</button>
-    <button class="pick-btn" data-category="Wissenschaft">Wissenschaft</button>
-    <button class="pick-btn" data-category="Technologie">Technologie</button>
-    <button class="pick-btn" data-category="Gesellschaft">Gesellschaft</button>
-    <button class="pick-btn" data-category="Kultur">Kultur</button>
-    <button class="pick-btn" data-category="Umwelt">Umwelt</button>
-    <button class="pick-btn" data-category="Gesundheit">Gesundheit</button>
-    <button class="pick-btn" data-category="Sport">Sport</button>
-    <button class="pick-btn" data-category="Schule">Schule</button>
-    <button class="pick-btn" data-category="Lifestyle">Lifestyle</button>
-    <button class="pick-btn" data-category="Kurioses">Kurioses</button>
-    <button class="pick-btn random-btn" onclick="pickRandomCategory()">↻ Zufall</button>
-  </div>
+    <header class="masthead">
+      <p class="masthead-kicker" id="uiKicker"></p>
+      <h1 class="masthead-title" id="uiTitle"></h1>
+      <p class="masthead-sub"    id="uiSub"></p>
+    </header>
 
-  <div class="gen-row">
-    <button class="gen-btn" id="genBtn" onclick="generate()">↻ &nbsp;Artikel generieren</button>
-    <p class="controls-hint">Niveau und Thema wählen — jedes Mal ein neuer Artikel</p>
-  </div>
+    <div class="controls">
+      <span class="control-label" id="uiLevelLabel"></span>
+      <div class="pick-row" id="levelRow">
+        <button class="pick-btn" data-level="A1">A1</button>
+        <button class="pick-btn" data-level="A2">A2</button>
+        <button class="pick-btn" data-level="B1">B1</button>
+        <button class="pick-btn active" data-level="B2">B2</button>
+        <button class="pick-btn" data-level="C1">C1</button>
+        <button class="pick-btn" data-level="C2">C2</button>
+      </div>
 
-</div>
+      <span class="control-label" id="uiTopicLabel"></span>
+      <div class="pick-row" id="categoryRow">
+        <!-- injected by applyLanguage() -->
+      </div>
 
-<div class="error-box" id="errorBox"></div>
-<div class="debug-box"  id="debugBox"></div>
-<div class="loading"    id="loadingBox"><span class="loading-dots">Redaktion arbeitet</span></div>
-
-<div class="article-outer" id="articleOuter">
-  <div class="tag-row">
-    <span class="tag" id="levelTag">B2</span>
-    <span class="tag tag-domain" id="domainTag"></span>
-  </div>
-
-  <div class="section-eyebrow">Vokabeln</div>
-  <div class="vocab-grid" id="vocabGrid"></div>
-
-  <hr class="rule-thick" />
-
-  <h2 class="article-headline" id="articleTitle"></h2>
-  <div class="article-byline">KI-Redaktion · Tagesgeschehen</div>
-  <div class="article-body" id="articleBody"></div>
-
-  <hr class="rule-thick" />
-
-  <div class="questions-row">
-    <div class="questions-block">
-      <h3>Fragen zum Text</h3>
-      <div id="comprehensionList"></div>
+      <div class="gen-row">
+        <button class="gen-btn" id="genBtn" onclick="generate()">↻</button>
+        <p class="controls-hint" id="uiHint"></p>
+      </div>
     </div>
-    <div class="questions-block">
-      <h3>Diskussionsfragen</h3>
-      <div id="discussionList"></div>
-    </div>
-  </div>
 
-  <div class="next-row">
-    <button class="next-btn" onclick="generate()">Nächster Artikel →</button>
-  </div>
-</div>
+    <div class="error-box" id="errorBox"></div>
+    <div class="debug-box"  id="debugBox"></div>
+    <div class="loading"    id="loadingBox"><span class="loading-dots" id="uiLoading"></span></div>
+
+    <div class="article-outer" id="articleOuter">
+      <div class="tag-row">
+        <span class="tag" id="levelTag">B2</span>
+        <span class="tag tag-domain" id="domainTag"></span>
+      </div>
+
+      <div class="section-eyebrow" id="uiVocabHeader"></div>
+      <div class="vocab-grid" id="vocabGrid"></div>
+
+      <hr class="rule-thick" />
+
+      <h2 class="article-headline" id="articleTitle"></h2>
+      <div class="article-byline"  id="uiByline"></div>
+      <div class="article-body"    id="articleBody"></div>
+
+      <hr class="rule-thick" />
+
+      <div class="questions-row">
+        <div class="questions-block">
+          <h3 id="uiComprehensionHeader"></h3>
+          <div id="comprehensionList"></div>
+        </div>
+        <div class="questions-block">
+          <h3 id="uiDiscussionHeader"></h3>
+          <div id="discussionList"></div>
+        </div>
+      </div>
+
+      <div class="next-row">
+        <button class="next-btn" id="uiNextBtn" onclick="generate()"></button>
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /app-wrapper -->
 
 <script>
   const PROXY_URL = "https://autumn-rice-2cd2.jorgeworkspace-nascimento.workers.dev";
 
+  // ── State ───────────────────────────────────────────────
   let selectedLevel    = "B2";
   let selectedCategory = null;
+  let currentLang      = "de";
 
+  // ── Language definitions ─────────────────────────────────
+  // Single source of truth: all UI strings + target language name per language.
+  // The prompt is written in English; only `targetLanguage` changes.
+  const LANGUAGES = {
+    de: {
+      name: "Deutsch", flag: "🇩🇪", targetLanguage: "German", htmlLang: "de",
+      titleHTML: 'Deutsches <span>Tages</span>geschehen',
+      pageTitle: "Deutsches Tagesgeschehen",
+      kicker: "KI-gestütztes Sprachlernen",
+      sub: "Nachrichten für Sprachenlernende",
+      levelLabel: "Sprachniveau", topicLabel: "Thema",
+      generateBtn: "Artikel generieren", generatingBtn: "⏳ Generiere …",
+      hint: "Niveau und Thema wählen — jedes Mal ein neuer Artikel",
+      loading: "Redaktion arbeitet",
+      vocabHeader: "Vokabeln",
+      byline: "KI-Redaktion · Tagesgeschehen",
+      comprehensionHeader: "Fragen zum Text",
+      discussionHeader: "Diskussionsfragen",
+      nextBtn: "Nächster Artikel →",
+      randomBtn: "↻ Zufall",
+      noCategory: "Bitte wähle zuerst ein Thema aus.",
+      categories: {
+        Politik:"Politik", Wirtschaft:"Wirtschaft", Wissenschaft:"Wissenschaft",
+        Technologie:"Technologie", Gesellschaft:"Gesellschaft", Kultur:"Kultur",
+        Umwelt:"Umwelt", Gesundheit:"Gesundheit", Sport:"Sport",
+        Schule:"Schule", Lifestyle:"Lifestyle", Kurioses:"Kurioses"
+      }
+    },
+    en: {
+      name: "English", flag: "🇬🇧", targetLanguage: "English", htmlLang: "en",
+      titleHTML: '<span>Daily</span> Dispatch',
+      pageTitle: "Daily Dispatch",
+      kicker: "AI-powered language learning",
+      sub: "News for language learners",
+      levelLabel: "Language level", topicLabel: "Topic",
+      generateBtn: "Generate article", generatingBtn: "⏳ Generating …",
+      hint: "Choose a level and topic — a new article every time",
+      loading: "Newsroom working",
+      vocabHeader: "Vocabulary",
+      byline: "AI Newsroom · Daily Dispatch",
+      comprehensionHeader: "Comprehension questions",
+      discussionHeader: "Discussion questions",
+      nextBtn: "Next article →",
+      randomBtn: "↻ Random",
+      noCategory: "Please select a topic first.",
+      categories: {
+        Politik:"Politics", Wirtschaft:"Economics", Wissenschaft:"Science",
+        Technologie:"Technology", Gesellschaft:"Society", Kultur:"Culture",
+        Umwelt:"Environment", Gesundheit:"Health", Sport:"Sport",
+        Schule:"Education", Lifestyle:"Lifestyle", Kurioses:"Curiosities"
+      }
+    },
+    it: {
+      name: "Italiano", flag: "🇮🇹", targetLanguage: "Italian", htmlLang: "it",
+      titleHTML: 'Il <span>Quotidiano</span>',
+      pageTitle: "Il Quotidiano",
+      kicker: "Apprendimento linguistico con IA",
+      sub: "Notizie per chi studia le lingue",
+      levelLabel: "Livello linguistico", topicLabel: "Argomento",
+      generateBtn: "Genera articolo", generatingBtn: "⏳ Generazione …",
+      hint: "Scegli livello e argomento — ogni volta un articolo nuovo",
+      loading: "La redazione è al lavoro",
+      vocabHeader: "Vocabolario",
+      byline: "Redazione IA · Il Quotidiano",
+      comprehensionHeader: "Domande di comprensione",
+      discussionHeader: "Domande di discussione",
+      nextBtn: "Articolo successivo →",
+      randomBtn: "↻ Casuale",
+      noCategory: "Seleziona prima un argomento.",
+      categories: {
+        Politik:"Politica", Wirtschaft:"Economia", Wissenschaft:"Scienza",
+        Technologie:"Tecnologia", Gesellschaft:"Società", Kultur:"Cultura",
+        Umwelt:"Ambiente", Gesundheit:"Salute", Sport:"Sport",
+        Schule:"Istruzione", Lifestyle:"Lifestyle", Kurioses:"Curiosità"
+      }
+    },
+    nl: {
+      name: "Nederlands", flag: "🇳🇱", targetLanguage: "Dutch", htmlLang: "nl",
+      titleHTML: 'Het <span>Dag</span>blad',
+      pageTitle: "Het Dagblad",
+      kicker: "AI-gestuurd taalleren",
+      sub: "Nieuws voor taalleerders",
+      levelLabel: "Taalniveau", topicLabel: "Onderwerp",
+      generateBtn: "Artikel genereren", generatingBtn: "⏳ Genereren …",
+      hint: "Kies niveau en onderwerp — elke keer een nieuw artikel",
+      loading: "Redactie is bezig",
+      vocabHeader: "Woordenschat",
+      byline: "AI-redactie · Het Dagblad",
+      comprehensionHeader: "Begripssvragen",
+      discussionHeader: "Discussievragen",
+      nextBtn: "Volgend artikel →",
+      randomBtn: "↻ Willekeurig",
+      noCategory: "Selecteer eerst een onderwerp.",
+      categories: {
+        Politik:"Politiek", Wirtschaft:"Economie", Wissenschaft:"Wetenschap",
+        Technologie:"Technologie", Gesellschaft:"Samenleving", Kultur:"Cultuur",
+        Umwelt:"Milieu", Gesundheit:"Gezondheid", Sport:"Sport",
+        Schule:"Onderwijs", Lifestyle:"Lifestyle", Kurioses:"Curiosa"
+      }
+    },
+    es: {
+      name: "Español", flag: "🇪🇸", targetLanguage: "Spanish", htmlLang: "es",
+      titleHTML: 'El <span>Diario</span>',
+      pageTitle: "El Diario",
+      kicker: "Aprendizaje de idiomas con IA",
+      sub: "Noticias para estudiantes de idiomas",
+      levelLabel: "Nivel de idioma", topicLabel: "Tema",
+      generateBtn: "Generar artículo", generatingBtn: "⏳ Generando …",
+      hint: "Elige nivel y tema — un artículo nuevo cada vez",
+      loading: "La redacción trabaja",
+      vocabHeader: "Vocabulario",
+      byline: "Redacción IA · El Diario",
+      comprehensionHeader: "Preguntas de comprensión",
+      discussionHeader: "Preguntas de debate",
+      nextBtn: "Siguiente artículo →",
+      randomBtn: "↻ Aleatorio",
+      noCategory: "Por favor selecciona un tema primero.",
+      categories: {
+        Politik:"Política", Wirtschaft:"Economía", Wissenschaft:"Ciencia",
+        Technologie:"Tecnología", Gesellschaft:"Sociedad", Kultur:"Cultura",
+        Umwelt:"Medio ambiente", Gesundheit:"Salud", Sport:"Deporte",
+        Schule:"Educación", Lifestyle:"Estilo de vida", Kurioses:"Curiosidades"
+      }
+    },
+    pt: {
+      name: "Português", flag: "🇧🇷", targetLanguage: "Portuguese", htmlLang: "pt",
+      titleHTML: 'O <span>Diário</span>',
+      pageTitle: "O Diário",
+      kicker: "Aprendizado de idiomas com IA",
+      sub: "Notícias para estudantes de idiomas",
+      levelLabel: "Nível de idioma", topicLabel: "Tema",
+      generateBtn: "Gerar artigo", generatingBtn: "⏳ Gerando …",
+      hint: "Escolha o nível e o tema — um artigo novo a cada vez",
+      loading: "Redação trabalhando",
+      vocabHeader: "Vocabulário",
+      byline: "Redação IA · O Diário",
+      comprehensionHeader: "Perguntas de compreensão",
+      discussionHeader: "Perguntas de discussão",
+      nextBtn: "Próximo artigo →",
+      randomBtn: "↻ Aleatório",
+      noCategory: "Por favor selecione um tema primeiro.",
+      categories: {
+        Politik:"Política", Wirtschaft:"Economia", Wissenschaft:"Ciência",
+        Technologie:"Tecnologia", Gesellschaft:"Sociedade", Kultur:"Cultura",
+        Umwelt:"Meio ambiente", Gesundheit:"Saúde", Sport:"Esporte",
+        Schule:"Educação", Lifestyle:"Lifestyle", Kurioses:"Curiosidades"
+      }
+    },
+    fr: {
+      name: "Français", flag: "🇫🇷", targetLanguage: "French", htmlLang: "fr",
+      titleHTML: 'Le <span>Quotidien</span>',
+      pageTitle: "Le Quotidien",
+      kicker: "Apprentissage des langues par IA",
+      sub: "Actualités pour apprenants de langues",
+      levelLabel: "Niveau de langue", topicLabel: "Thème",
+      generateBtn: "Générer l'article", generatingBtn: "⏳ Génération …",
+      hint: "Choisissez le niveau et le thème — un nouvel article à chaque fois",
+      loading: "La rédaction travaille",
+      vocabHeader: "Vocabulaire",
+      byline: "Rédaction IA · Le Quotidien",
+      comprehensionHeader: "Questions de compréhension",
+      discussionHeader: "Questions de discussion",
+      nextBtn: "Article suivant →",
+      randomBtn: "↻ Aléatoire",
+      noCategory: "Veuillez d'abord sélectionner un thème.",
+      categories: {
+        Politik:"Politique", Wirtschaft:"Économie", Wissenschaft:"Sciences",
+        Technologie:"Technologie", Gesellschaft:"Société", Kultur:"Culture",
+        Umwelt:"Environnement", Gesundheit:"Santé", Sport:"Sport",
+        Schule:"Éducation", Lifestyle:"Lifestyle", Kurioses:"Insolite"
+      }
+    }
+  };
+
+  // ── Category seeds (English — prompt is always in English) ──
   const CATEGORY_SEEDS = {
-    Politik:      "Eine aktuelle politische Entscheidung oder Debatte in Europa",
-    Wirtschaft:   "Eine wirtschaftliche Entwicklung bei einem bekannten Unternehmen oder Markt",
-    Wissenschaft: "Eine neue wissenschaftliche Studie oder Entdeckung an einer Universität",
-    Technologie:  "Eine neue technologische Anwendung im Alltag der Menschen",
-    Gesellschaft: "Ein aktueller sozialer Trend oder eine gesellschaftliche Veränderung",
-    Kultur:       "Ein kulturelles Ereignis oder ein Trend in Kunst, Literatur oder Medien",
-    Umwelt:       "Eine Umwelt- oder Klimanachricht mit konkretem Ort oder Messwert",
-    Gesundheit:   "Eine neue Gesundheitsstudie oder medizinische Empfehlung für den Alltag",
-    Sport:        "Eine Sportnachricht mit Rekord, Turnierergebnis oder Athletenprofil",
-    Schule:       "Eine Veränderung oder Debatte im Bildungssystem oder Schulalltag",
-    Lifestyle:    "Ein Trend in Ernährung, Reisen, Mode oder Alltagskultur",
-    Kurioses:     "Eine ungewöhnliche oder überraschende Nachricht aus aller Welt"
+    Politik:      "A current political decision or debate",
+    Wirtschaft:   "An economic development at a well-known company or market",
+    Wissenschaft: "A new scientific study or discovery at a university",
+    Technologie:  "A new technological application in everyday life",
+    Gesellschaft: "A current social trend or societal change",
+    Kultur:       "A cultural event or trend in art, literature or media",
+    Umwelt:       "An environmental or climate news story with a specific location or measurement",
+    Gesundheit:   "A new health study or medical recommendation for daily life",
+    Sport:        "A sports story with a record, tournament result or athlete profile",
+    Schule:       "A change or debate in the education system or school life",
+    Lifestyle:    "A trend in food, travel, fashion or everyday culture",
+    Kurioses:     "An unusual or surprising news story from around the world"
   };
 
+  // ── Level instructions (English — prompt is always in English) ──
   const LEVEL_INSTRUCTIONS = {
-    A1: `- Sehr einfache Sätze (Subjekt + Verb + Objekt).\n- Nur die häufigsten 1000 deutschen Wörter.\n- Kurze Sätze (max. 8 Wörter pro Satz).\n- Kein Konjunktiv, kein Passiv.`,
-    A2: `- Einfache Sätze mit gelegentlichen Nebensätzen.\n- Grundlegender Wortschatz, keine Fachsprache.\n- Sätze max. 12 Wörter.\n- Wenig Passiv, kein Konjunktiv II.`,
-    B1: `- Klare, verständliche Sätze mit Nebensätzen.\n- Alltagsnaher Wortschatz mit einigen Fachbegriffen.\n- Gelegentliches Passiv erlaubt.`,
-    B2: `- Journalistischer Stil, sachlich und klar.\n- Differenzierter Wortschatz, Fachbegriffe mit Kontext.\n- Passiv und Nebensätze normal einsetzen.`,
-    C1: `- Gehobener journalistischer Stil.\n- Komplexe Satzstrukturen und reichhaltiger Wortschatz.\n- Konjunktiv I für indirekte Rede verwenden.\n- Nominalisierungen und abstrakte Konzepte einsetzen.`,
-    C2: `- Anspruchsvoller, literarisch-journalistischer Stil.\n- Komplexe Hypotaxen, Parenthesen, rhetorische Mittel.\n- Vollständige Beherrschung aller grammatischen Strukturen.\n- Nuancierter, präziser Wortschatz auf muttersprachlichem Niveau.`
+    A1: `- Very simple sentences (subject + verb + object only).\n- Only the most common 1000 words in the target language.\n- Maximum 8 words per sentence.\n- No subjunctive, no passive voice.`,
+    A2: `- Simple sentences with occasional subordinate clauses.\n- Basic vocabulary, no technical jargon.\n- Maximum 12 words per sentence.\n- Minimal passive voice, no conditional mood.`,
+    B1: `- Clear, understandable sentences with subordinate clauses.\n- Everyday vocabulary with some technical terms explained in context.\n- Occasional passive voice permitted.`,
+    B2: `- Journalistic style, factual and clear.\n- Varied vocabulary with technical terms used in context.\n- Normal use of passive voice and subordinate clauses.`,
+    C1: `- Elevated journalistic style.\n- Complex sentence structures and rich vocabulary.\n- Use reported speech constructions.\n- Nominalisations and abstract concepts permitted.`,
+    C2: `- Sophisticated, literary-journalistic style.\n- Complex hypotaxis, parentheses, rhetorical devices.\n- Full command of all grammatical structures.\n- Nuanced, precise vocabulary at near-native level.`
   };
 
+  // ── Schema ───────────────────────────────────────────────
   const ARTICLE_SCHEMA = {
     type: "object",
     properties: {
       domain: { type: "string", enum: ["Politik","Wirtschaft","Wissenschaft","Technologie","Gesellschaft","Kultur","Umwelt","Gesundheit","Kurioses","Sport","Bildung","Lifestyle"] },
       title:  { type: "string" },
-      vocab:  { type: "array", minItems: 6, maxItems: 6, items: { type: "object", properties: { word: {type:"string"}, definition: {type:"string"}, example: {type:"string"} }, required: ["word","definition","example"] } },
+      vocab:  { type: "array", minItems: 6, maxItems: 6, items: { type: "object", properties: { word:{type:"string"}, definition:{type:"string"}, example:{type:"string"} }, required:["word","definition","example"] } },
       paragraphs:    { type: "array", minItems: 4, maxItems: 4, items: { type: "string" } },
       comprehension: { type: "array", minItems: 4, maxItems: 4, items: { type: "string" } },
       discussion:    { type: "array", minItems: 4, maxItems: 4, items: { type: "string" } }
@@ -227,27 +490,132 @@
     required: ["domain","title","vocab","paragraphs","comprehension","discussion"]
   };
 
-  function buildPrompt(category, level) {
-    return `Du bist ein Redakteur für eine deutsche Sprachlernplattform.
+  // ── Prompt builder ───────────────────────────────────────
+  function buildPrompt(category, level, lang) {
+    return `You are an editor for a language learning platform.
 
-Erstelle einen originellen, fiktiven, aber realistisch klingenden Daily-News-Artikel auf ${level}-Niveau.
+Create an original, fictional but realistic-sounding daily news article at ${level} level (CEFR).
 
-Thema: ${CATEGORY_SEEDS[category]}
+Topic: ${CATEGORY_SEEDS[category]}
 
-Sprachniveau-Regeln für ${level}:
+Output language: Write the ENTIRE response — title, article body, all vocabulary entries, and all questions — in ${lang.targetLanguage}. Do not use any other language anywhere.
+
+Language level rules for ${level}:
 ${LEVEL_INSTRUCTIONS[level]}
 
-Allgemeine Regeln:
-- Alles auf Deutsch.
-- Neutraler, sachlicher, journalistischer Ton.
-- Keine Meinungen, keine Spekulation, keine Quellenangaben.
-- Der Artikel soll aktuell klingen. Verwende Wörter wie „kürzlich", „diese Woche", „gestern" oder „heute".
-- Nenne mindestens einen konkreten Ort, eine konkrete Zahl oder eine Organisation.
-- Schreibe genau 4 Absätze mit je 3 bis 4 Sätzen.
-- Erstelle genau 6 Vokabeleinträge passend zum ${level}-Niveau.
-- Erstelle genau 4 Verständnisfragen passend zum ${level}-Niveau.
-- Erstelle genau 4 offene Diskussionsfragen passend zum ${level}-Niveau.
+General rules:
+- Neutral, factual, journalistic tone.
+- No opinions, no speculation, no source citations.
+- The article should sound current. Use words meaning "recently", "this week", "yesterday" or "today" in ${lang.targetLanguage}.
+- Mention at least one specific place, number or organisation.
+- Write exactly 4 paragraphs with 3 to 4 sentences each.
+- Create exactly 6 vocabulary entries appropriate for ${level} level.
+- Create exactly 4 comprehension questions appropriate for ${level} level.
+- Create exactly 4 open discussion questions appropriate for ${level} level.
 `;
+  }
+
+  // ── Apply language to UI ─────────────────────────────────
+  function applyLanguage(langCode) {
+    currentLang = langCode;
+    const lang  = LANGUAGES[langCode];
+
+    // HTML metadata
+    document.documentElement.lang = lang.htmlLang;
+    document.title = lang.pageTitle;
+
+    // Masthead
+    document.getElementById("uiTitle").innerHTML  = lang.titleHTML;
+    document.getElementById("uiKicker").textContent = lang.kicker;
+    document.getElementById("uiSub").textContent    = lang.sub;
+
+    // Controls
+    document.getElementById("uiLevelLabel").textContent = lang.levelLabel;
+    document.getElementById("uiTopicLabel").textContent = lang.topicLabel;
+    document.getElementById("uiHint").textContent       = lang.hint;
+    document.getElementById("genBtn").textContent       = "↻ \u00A0" + lang.generateBtn;
+
+    // Loading
+    document.getElementById("uiLoading").textContent = lang.loading;
+
+    // Article section labels
+    document.getElementById("uiVocabHeader").textContent       = lang.vocabHeader;
+    document.getElementById("uiByline").textContent            = lang.byline;
+    document.getElementById("uiComprehensionHeader").textContent = lang.comprehensionHeader;
+    document.getElementById("uiDiscussionHeader").textContent  = lang.discussionHeader;
+    document.getElementById("uiNextBtn").textContent           = lang.nextBtn;
+
+    // Sidebar active state
+    document.querySelectorAll(".lang-btn").forEach(b => {
+      b.classList.toggle("active", b.dataset.lang === langCode);
+    });
+
+    // Rebuild category buttons in the selected language
+    const prev = selectedCategory; // preserve selection across language switch
+    buildCategoryButtons(lang, prev);
+
+    // Hide article — content was in the old language
+    document.getElementById("articleOuter").style.display = "none";
+    hideError();
+  }
+
+  // ── Build sidebar ────────────────────────────────────────
+  function buildSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const label   = sidebar.querySelector(".sidebar-label");
+    Object.entries(LANGUAGES).forEach(([code, lang]) => {
+      const btn = document.createElement("button");
+      btn.className       = "lang-btn";
+      btn.dataset.lang    = code;
+      btn.innerHTML       = `<span class="lang-flag">${lang.flag}</span><span class="lang-name">${lang.name}</span>`;
+      btn.addEventListener("click", () => applyLanguage(code));
+      sidebar.appendChild(btn);
+    });
+  }
+
+  // ── Build category buttons ───────────────────────────────
+  function buildCategoryButtons(lang, preserveSelection) {
+    const row = document.getElementById("categoryRow");
+    row.innerHTML = "";
+    selectedCategory = null;
+
+    Object.keys(CATEGORY_SEEDS).forEach(key => {
+      const btn = document.createElement("button");
+      btn.className        = "pick-btn";
+      btn.dataset.category = key;
+      btn.textContent      = lang.categories[key] || key;
+      if (key === preserveSelection) {
+        btn.classList.add("active");
+        selectedCategory = key;
+      }
+      row.appendChild(btn);
+    });
+
+    // Random button
+    const rnd = document.createElement("button");
+    rnd.className   = "pick-btn random-btn";
+    rnd.textContent = lang.randomBtn;
+    rnd.addEventListener("click", pickRandomCategory);
+    row.appendChild(rnd);
+
+    // Category click handler
+    row.addEventListener("click", e => {
+      const btn = e.target.closest(".pick-btn");
+      if (!btn || btn.classList.contains("random-btn")) return;
+      row.querySelectorAll(".pick-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedCategory = btn.dataset.category;
+    });
+  }
+
+  // ── Random category ──────────────────────────────────────
+  function pickRandomCategory() {
+    const keys   = Object.keys(CATEGORY_SEEDS);
+    const random = keys[Math.floor(Math.random() * keys.length)];
+    document.querySelectorAll("#categoryRow .pick-btn").forEach(b => b.classList.remove("active"));
+    const btn = document.querySelector(`#categoryRow [data-category="${random}"]`);
+    if (btn) btn.classList.add("active");
+    selectedCategory = random;
   }
 
   // ── Level buttons ────────────────────────────────────────
@@ -259,29 +627,12 @@ Allgemeine Regeln:
     selectedLevel = btn.dataset.level;
   });
 
-  // ── Category buttons ─────────────────────────────────────
-  document.getElementById("categoryRow").addEventListener("click", e => {
-    const btn = e.target.closest(".pick-btn");
-    if (!btn || btn.classList.contains("random-btn")) return;
-    document.querySelectorAll("#categoryRow .pick-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    selectedCategory = btn.dataset.category;
-  });
-
-  // ── Random category ──────────────────────────────────────
-  function pickRandomCategory() {
-    const categories = Object.keys(CATEGORY_SEEDS);
-    const random = categories[Math.floor(Math.random() * categories.length)];
-    document.querySelectorAll("#categoryRow .pick-btn").forEach(b => b.classList.remove("active"));
-    const btn = document.querySelector(`#categoryRow [data-category="${random}"]`);
-    if (btn) btn.classList.add("active");
-    selectedCategory = random;
-  }
-
   // ── Generate ─────────────────────────────────────────────
   async function generate() {
+    const lang = LANGUAGES[currentLang];
+
     if (!selectedCategory) {
-      showError("Bitte wähle zuerst ein Thema aus.");
+      showError(lang.noCategory);
       return;
     }
 
@@ -292,7 +643,7 @@ Allgemeine Regeln:
 
     try {
       const requestBody = {
-        contents: [{ role: "user", parts: [{ text: buildPrompt(selectedCategory, selectedLevel) }] }],
+        contents: [{ role:"user", parts:[{ text: buildPrompt(selectedCategory, selectedLevel, lang) }] }],
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 4096,
@@ -310,41 +661,41 @@ Allgemeine Regeln:
       const responseText = await res.text();
       let data;
       try { data = JSON.parse(responseText); }
-      catch(e) { showDebug("Raw HTTP response:\n\n" + responseText); throw new Error("Die API-Antwort war kein gültiges JSON."); }
+      catch(e) { showDebug("Raw HTTP response:\n\n" + responseText); throw new Error("API response was not valid JSON."); }
 
       if (!res.ok) { showDebug(JSON.stringify(data,null,2)); throw new Error(data.error?.message || "HTTP " + res.status); }
 
       const raw = (data.candidates?.[0]?.content?.parts || []).map(p => p.text||"").join("\n").trim();
-      if (!raw) { showDebug(JSON.stringify(data,null,2)); throw new Error("Gemini hat keinen Text zurückgegeben. Finish reason: " + (data.candidates?.[0]?.finishReason||"unknown")); }
+      if (!raw) { showDebug(JSON.stringify(data,null,2)); throw new Error("No text returned. Finish reason: " + (data.candidates?.[0]?.finishReason||"unknown")); }
 
       let parsed;
       try { parsed = JSON.parse(raw); }
-      catch(e) { showDebug("Raw model output:\n\n" + raw); throw new Error("Gemini hat Text zurückgegeben, aber kein gültiges JSON."); }
+      catch(e) { showDebug("Raw model output:\n\n" + raw); throw new Error("Model returned text but not valid JSON."); }
 
       normalizeArticleData(parsed);
-      render(parsed);
+      render(parsed, lang);
 
     } catch(e) {
       console.error(e);
-      showError("Fehler: " + e.message);
+      showError("Error: " + e.message);
     } finally {
       setLoading(false);
     }
   }
 
   function normalizeArticleData(d) {
-    if (!d || typeof d !== "object") throw new Error("Die Antwort ist kein gültiges Objekt.");
+    if (!d || typeof d !== "object") throw new Error("Response is not a valid object.");
     if (!d.domain)                   d.domain        = selectedCategory;
-    if (!d.title)                    d.title         = "Ohne Titel";
+    if (!d.title)                    d.title         = "—";
     if (!Array.isArray(d.vocab))         d.vocab         = [];
     if (!Array.isArray(d.paragraphs))    d.paragraphs    = [];
     if (!Array.isArray(d.comprehension)) d.comprehension = [];
     if (!Array.isArray(d.discussion))    d.discussion    = [];
   }
 
-  function render(d) {
+  function render(d, lang) {
     document.getElementById("levelTag").textContent     = selectedLevel;
-    document.getElementById("domainTag").textContent    = d.domain;
+    document.getElementById("domainTag").textContent    = lang.categories[d.domain] || d.domain;
     document.getElementById("articleTitle").textContent = d.title;
 
     document.getElementById("vocabGrid").innerHTML = d.vocab.slice(0,6).map(v => `
@@ -366,7 +717,7 @@ Allgemeine Regeln:
         <div class="q-item"><span class="q-num">${i+1}</span><span class="q-text">${escapeHtml(q)}</span></div>`).join("");
 
     document.getElementById("articleOuter").style.display = "block";
-    document.getElementById("articleOuter").scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("articleOuter").scrollIntoView({ behavior:"smooth", block:"start" });
   }
 
   function escapeHtml(v) {
@@ -374,9 +725,10 @@ Allgemeine Regeln:
   }
 
   function setLoading(on) {
+    const lang = LANGUAGES[currentLang];
     document.getElementById("loadingBox").style.display = on ? "block" : "none";
-    document.getElementById("genBtn").disabled = on;
-    document.getElementById("genBtn").textContent = on ? "⏳  Generiere …" : "↻  Artikel generieren";
+    document.getElementById("genBtn").disabled    = on;
+    document.getElementById("genBtn").textContent = on ? lang.generatingBtn : "↻ \u00A0" + lang.generateBtn;
   }
 
   function showError(msg) { const b = document.getElementById("errorBox"); b.textContent = msg; b.style.display = "block"; }
@@ -384,8 +736,10 @@ Allgemeine Regeln:
   function showDebug(msg) { const b = document.getElementById("debugBox"); b.textContent = msg; b.style.display = "block"; }
   function hideDebug()    { document.getElementById("debugBox").style.display = "none"; }
 
-  // Pre-select a random category on load
-  pickRandomCategory();
+  // ── Init ─────────────────────────────────────────────────
+  buildSidebar();
+  applyLanguage("de");   // default language
+  pickRandomCategory();  // pre-select a random category
 </script>
 </body>
 </html>
