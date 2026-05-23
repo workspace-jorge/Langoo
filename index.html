@@ -434,15 +434,10 @@
 </div>
 
 <script>
-  const GEMINI_API_KEY = "AIzaSyD626O-KR-wvBxNJlV0BrhTA1jOd7Glnf8";
 
   const GEMINI_MODEL = "gemini-2.5-flash";
 
-  const GEMINI_URL =
-    "https://generativelanguage.googleapis.com/v1beta/models/" +
-    GEMINI_MODEL +
-    ":generateContent?key=" +
-    encodeURIComponent(GEMINI_API_KEY);
+  const PROXY_URL = "https://autumn-rice-2cd2.jorgeworkspace-nascimento.workers.dev";
 
   const TOPIC_SEEDS = [
     "Eine ungewöhnliche Nachricht aus einer europäischen Stadt",
@@ -582,10 +577,6 @@ Regeln:
   }
 
   async function generate() {
-    if (!GEMINI_API_KEY || GEMINI_API_KEY === "PASTE_YOUR_KEY_HERE") {
-      showError("Bitte füge deinen Gemini API-Schlüssel in die Datei ein.");
-      return;
-    }
 
     setLoading(true);
     hideError();
@@ -612,12 +603,10 @@ Regeln:
         }
       };
 
-      const res = await fetch(GEMINI_URL, {
+      const res = await fetch(PROXY_URL, {   // was: GEMINI_URL
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(requestBody)
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
       });
 
       const responseText = await res.text();
