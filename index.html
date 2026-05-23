@@ -7,11 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
 
 <style>
-  *, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
     --ink: #1a1a18;
@@ -25,383 +21,139 @@
     --sans: 'DM Sans', system-ui, sans-serif;
   }
 
-  body {
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--sans);
-    min-height: 100vh;
-  }
+  body { background: var(--paper); color: var(--ink); font-family: var(--sans); min-height: 100vh; }
 
-  .masthead {
-    border-bottom: 3px double var(--ink);
-    padding: 1.5rem 2rem 1rem;
-    text-align: center;
-  }
+  .masthead { border-bottom: 3px double var(--ink); padding: 1.5rem 2rem 1rem; text-align: center; }
+  .masthead-kicker { font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 6px; }
+  .masthead-title  { font-family: var(--serif); font-size: clamp(28px,5vw,48px); font-weight: 600; line-height: 1; }
+  .masthead-title span { color: var(--accent); }
+  .masthead-sub    { font-size: 11px; color: var(--ink-muted); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 8px; }
 
-  .masthead-kicker {
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--ink-muted);
-    margin-bottom: 6px;
-  }
+  .controls { max-width: 680px; margin: 2rem auto; padding: 0 1.5rem; }
 
-  .masthead-title {
-    font-family: var(--serif);
-    font-size: clamp(28px, 5vw, 48px);
-    font-weight: 600;
-    line-height: 1;
-  }
+  .control-label { font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; display: block; }
 
-  .masthead-title span {
-    color: var(--accent);
-  }
+  .pick-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.5rem; }
 
-  .masthead-sub {
-    font-size: 11px;
-    color: var(--ink-muted);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin-top: 8px;
+  .pick-btn {
+    padding: 8px 14px;
+    background: white; color: var(--ink-mid);
+    font-family: var(--sans); font-size: 13px; font-weight: 500;
+    border: 1.5px solid var(--rule); cursor: pointer; transition: all 0.15s; white-space: nowrap;
   }
+  .pick-btn:hover  { border-color: var(--ink-mid); color: var(--ink); }
+  .pick-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
-  .masthead-badge {
-    display: inline-block;
-    background: var(--ink);
-    color: var(--paper);
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 3px 10px;
-    margin-top: 10px;
-  }
+  /* Zufall button gets a subtle accent tint when idle */
+  .pick-btn.random-btn { border-color: var(--accent); color: var(--accent); }
+  .pick-btn.random-btn:hover { background: var(--accent-light); }
+  .pick-btn.random-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
-  .controls {
-    max-width: 680px;
-    margin: 2rem auto;
-    padding: 0 1.5rem;
-    text-align: center;
-  }
+  #levelRow .pick-btn { flex: 1; min-width: 52px; text-align: center; }
 
-  .gen-btn {
-    padding: 13px 36px;
-    background: var(--accent);
-    color: white;
-    font-family: var(--sans);
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    border: none;
-    cursor: pointer;
-    transition: background 0.15s;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-  }
+  .gen-row { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .gen-btn { padding: 13px 36px; background: var(--accent); color: white; font-family: var(--sans); font-size: 14px; font-weight: 500; letter-spacing: 0.04em; border: none; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; gap: 10px; }
+  .gen-btn:hover    { background: #a82e22; }
+  .gen-btn:disabled { background: var(--ink-muted); cursor: not-allowed; }
+  .controls-hint { font-size: 12px; color: var(--ink-muted); letter-spacing: 0.04em; }
 
-  .gen-btn:hover {
-    background: #a82e22;
-  }
+  .loading { display: none; text-align: center; padding: 3rem; color: var(--ink-muted); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .loading-dots::after { content: ''; animation: dots 1.2s steps(4,end) infinite; }
+  @keyframes dots { 0%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} 100%{content:''} }
 
-  .gen-btn:disabled {
-    background: var(--ink-muted);
-    cursor: not-allowed;
-  }
+  .error-box { display: none; max-width: 780px; margin: 0 auto 1rem; padding: 12px 16px; background: var(--accent-light); border-left: 3px solid var(--accent); color: var(--accent); font-size: 13px; white-space: pre-wrap; }
+  .debug-box { display: none; max-width: 780px; margin: 0 auto 2rem; padding: 12px 16px; background: #fff; border: 1px solid var(--rule); color: var(--ink-mid); font-size: 12px; white-space: pre-wrap; overflow-x: auto; }
 
-  .controls-hint {
-    margin-top: 10px;
-    font-size: 12px;
-    color: var(--ink-muted);
-    letter-spacing: 0.05em;
-  }
+  .article-outer { display: none; max-width: 780px; margin: 0 auto 4rem; padding: 0 1.5rem; animation: fadeIn 0.5s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 
-  .loading {
-    display: none;
-    text-align: center;
-    padding: 3rem;
-    color: var(--ink-muted);
-    font-size: 12px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
+  .tag-row { display: flex; align-items: center; gap: 8px; margin-bottom: 1.5rem; }
+  .tag { font-size: 10px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; background: var(--ink); color: var(--paper); padding: 3px 8px; }
+  .tag-domain { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
 
-  .loading-dots::after {
-    content: '';
-    animation: dots 1.2s steps(4,end) infinite;
-  }
+  .rule-thick { border: none; border-top: 2px solid var(--ink); margin: 1.5rem 0; }
+  .section-eyebrow { font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
 
-  @keyframes dots {
-    0% { content: ''; }
-    25% { content: '.'; }
-    50% { content: '..'; }
-    75% { content: '...'; }
-    100% { content: ''; }
-  }
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-bottom: 2rem; }
+  .vocab-card { background: white; padding: 14px 16px; }
+  .vocab-word { font-family: var(--serif); font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+  .vocab-def  { font-size: 13px; color: var(--ink-mid); line-height: 1.5; margin-bottom: 6px; }
+  .vocab-ex   { font-size: 12px; color: var(--ink-muted); font-style: italic; line-height: 1.5; border-top: 1px solid var(--rule); padding-top: 6px; margin-top: 6px; }
 
-  .error-box {
-    display: none;
-    max-width: 780px;
-    margin: 0 auto 1rem;
-    padding: 12px 16px;
-    background: var(--accent-light);
-    border-left: 3px solid var(--accent);
-    color: var(--accent);
-    font-size: 13px;
-    white-space: pre-wrap;
-  }
+  .article-headline { font-family: var(--serif); font-size: clamp(22px,4vw,36px); font-weight: 600; line-height: 1.25; margin-bottom: 1rem; }
+  .article-byline { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; }
+  .article-byline::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
 
-  .debug-box {
-    display: none;
-    max-width: 780px;
-    margin: 0 auto 2rem;
-    padding: 12px 16px;
-    background: #fff;
-    border: 1px solid var(--rule);
-    color: var(--ink-mid);
-    font-size: 12px;
-    white-space: pre-wrap;
-    overflow-x: auto;
-  }
+  .article-body p { font-size: 16px; line-height: 1.8; color: var(--ink); margin-bottom: 1.2rem; font-weight: 300; }
+  .article-body p:first-child::first-letter { font-family: var(--serif); font-size: 52px; font-weight: 600; float: left; line-height: 0.85; margin: 4px 8px 0 0; color: var(--accent); }
 
-  .article-outer {
-    display: none;
-    max-width: 780px;
-    margin: 0 auto 4rem;
-    padding: 0 1.5rem;
-    animation: fadeIn 0.5s ease;
-  }
+  .questions-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+  @media (max-width: 600px) { .questions-row { grid-template-columns: 1fr; } }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  .questions-block { background: white; border: 1.5px solid var(--ink); padding: 1.5rem; }
+  .questions-block h3 { font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
 
-  .tag-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 1.5rem;
-  }
+  .q-item { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--rule); align-items: flex-start; }
+  .q-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .q-num  { font-family: var(--serif); font-size: 18px; font-weight: 600; color: var(--accent); min-width: 22px; line-height: 1.4; }
+  .q-text { font-size: 14px; line-height: 1.65; color: var(--ink-mid); padding-top: 2px; }
 
-  .tag {
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    background: var(--ink);
-    color: var(--paper);
-    padding: 3px 8px;
-  }
-
-  .tag-domain {
-    background: transparent;
-    color: var(--accent);
-    border: 1px solid var(--accent);
-  }
-
-  .rule-thick {
-    border: none;
-    border-top: 2px solid var(--ink);
-    margin: 1.5rem 0;
-  }
-
-  .section-eyebrow {
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 12px;
-  }
-
-  .vocab-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 1px;
-    background: var(--rule);
-    border: 1px solid var(--rule);
-    margin-bottom: 2rem;
-  }
-
-  .vocab-card {
-    background: white;
-    padding: 14px 16px;
-  }
-
-  .vocab-word {
-    font-family: var(--serif);
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--ink);
-    margin-bottom: 5px;
-  }
-
-  .vocab-def {
-    font-size: 13px;
-    color: var(--ink-mid);
-    line-height: 1.5;
-    margin-bottom: 6px;
-  }
-
-  .vocab-ex {
-    font-size: 12px;
-    color: var(--ink-muted);
-    font-style: italic;
-    line-height: 1.5;
-    border-top: 1px solid var(--rule);
-    padding-top: 6px;
-    margin-top: 6px;
-  }
-
-  .article-headline {
-    font-family: var(--serif);
-    font-size: clamp(22px, 4vw, 36px);
-    font-weight: 600;
-    line-height: 1.25;
-    margin-bottom: 1rem;
-  }
-
-  .article-byline {
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-muted);
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .article-byline::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--rule);
-  }
-
-  .article-body p {
-    font-size: 16px;
-    line-height: 1.8;
-    color: var(--ink);
-    margin-bottom: 1.2rem;
-    font-weight: 300;
-  }
-
-  .article-body p:first-child::first-letter {
-    font-family: var(--serif);
-    font-size: 52px;
-    font-weight: 600;
-    float: left;
-    line-height: 0.85;
-    margin: 4px 8px 0 0;
-    color: var(--accent);
-  }
-
-  .questions-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  @media (max-width: 600px) {
-    .questions-row {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .questions-block {
-    background: white;
-    border: 1.5px solid var(--ink);
-    padding: 1.5rem;
-  }
-
-  .questions-block h3 {
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 12px;
-  }
-
-  .q-item {
-    display: flex;
-    gap: 14px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--rule);
-    align-items: flex-start;
-  }
-
-  .q-item:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-
-  .q-num {
-    font-family: var(--serif);
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--accent);
-    min-width: 22px;
-    line-height: 1.4;
-  }
-
-  .q-text {
-    font-size: 14px;
-    line-height: 1.65;
-    color: var(--ink-mid);
-    padding-top: 2px;
-  }
-
-  .next-row {
-    text-align: center;
-    padding-bottom: 2rem;
-  }
-
-  .next-btn {
-    padding: 10px 28px;
-    background: transparent;
-    color: var(--ink);
-    font-family: var(--sans);
-    font-size: 13px;
-    font-weight: 500;
-    border: 1.5px solid var(--ink);
-    cursor: pointer;
-    letter-spacing: 0.04em;
-  }
-
-  .next-btn:hover {
-    background: #ede9df;
-  }
+  .next-row { text-align: center; padding-bottom: 2rem; }
+  .next-btn { padding: 10px 28px; background: transparent; color: var(--ink); font-family: var(--sans); font-size: 13px; font-weight: 500; border: 1.5px solid var(--ink); cursor: pointer; letter-spacing: 0.04em; }
+  .next-btn:hover { background: #ede9df; }
 </style>
 </head>
-
 <body>
 
 <header class="masthead">
   <p class="masthead-kicker">KI-gestütztes Deutschlernen</p>
   <h1 class="masthead-title">Deutsches <span>Tages</span>geschehen</h1>
   <p class="masthead-sub">Nachrichten für Deutschlernende</p>
-  <div><span class="masthead-badge">Niveau B2</span></div>
 </header>
 
 <div class="controls">
-  <button class="gen-btn" id="genBtn" onclick="generate()">
-    ↻ &nbsp;Neuen Artikel generieren
-  </button>
-  <p class="controls-hint">Ein zufälliges Thema aus aller Welt — jedes Mal anders</p>
+
+  <span class="control-label">Sprachniveau</span>
+  <div class="pick-row" id="levelRow">
+    <button class="pick-btn" data-level="A1">A1</button>
+    <button class="pick-btn" data-level="A2">A2</button>
+    <button class="pick-btn" data-level="B1">B1</button>
+    <button class="pick-btn active" data-level="B2">B2</button>
+    <button class="pick-btn" data-level="C1">C1</button>
+    <button class="pick-btn" data-level="C2">C2</button>
+  </div>
+
+  <span class="control-label">Thema</span>
+  <div class="pick-row" id="categoryRow">
+    <button class="pick-btn" data-category="Politik">Politik</button>
+    <button class="pick-btn" data-category="Wirtschaft">Wirtschaft</button>
+    <button class="pick-btn" data-category="Wissenschaft">Wissenschaft</button>
+    <button class="pick-btn" data-category="Technologie">Technologie</button>
+    <button class="pick-btn" data-category="Gesellschaft">Gesellschaft</button>
+    <button class="pick-btn" data-category="Kultur">Kultur</button>
+    <button class="pick-btn" data-category="Umwelt">Umwelt</button>
+    <button class="pick-btn" data-category="Gesundheit">Gesundheit</button>
+    <button class="pick-btn" data-category="Sport">Sport</button>
+    <button class="pick-btn" data-category="Schule">Schule</button>
+    <button class="pick-btn" data-category="Lifestyle">Lifestyle</button>
+    <button class="pick-btn" data-category="Kurioses">Kurioses</button>
+    <button class="pick-btn random-btn" onclick="pickRandomCategory()">↻ Zufall</button>
+  </div>
+
+  <div class="gen-row">
+    <button class="gen-btn" id="genBtn" onclick="generate()">↻ &nbsp;Artikel generieren</button>
+    <p class="controls-hint">Niveau und Thema wählen — jedes Mal ein neuer Artikel</p>
+  </div>
+
 </div>
 
 <div class="error-box" id="errorBox"></div>
-<div class="debug-box" id="debugBox"></div>
-<div class="loading" id="loadingBox"><span class="loading-dots">Redaktion arbeitet</span></div>
+<div class="debug-box"  id="debugBox"></div>
+<div class="loading"    id="loadingBox"><span class="loading-dots">Redaktion arbeitet</span></div>
 
 <div class="article-outer" id="articleOuter">
   <div class="tag-row">
-    <span class="tag">B2</span>
+    <span class="tag" id="levelTag">B2</span>
     <span class="tag tag-domain" id="domainTag"></span>
   </div>
 
@@ -421,7 +173,6 @@
       <h3>Fragen zum Text</h3>
       <div id="comprehensionList"></div>
     </div>
-
     <div class="questions-block">
       <h3>Diskussionsfragen</h3>
       <div id="discussionList"></div>
@@ -434,149 +185,105 @@
 </div>
 
 <script>
-
-  const GEMINI_MODEL = "gemini-2.5-flash";
-
   const PROXY_URL = "https://autumn-rice-2cd2.jorgeworkspace-nascimento.workers.dev";
 
-  const TOPIC_SEEDS = [
-    "Eine ungewöhnliche Nachricht aus einer europäischen Stadt",
-    "Eine neue wissenschaftliche Studie einer Universität",
-    "Ein aktueller sozialer Trend unter jungen Menschen",
-    "Eine neue politische Entscheidung in Europa",
-    "Eine wirtschaftliche Entwicklung bei einem bekannten Unternehmen",
-    "Eine neue technologische Anwendung im Alltag",
-    "Eine Umwelt- oder Klimanachricht mit konkretem Ort",
-    "Ein ungewöhnlicher Konsumtrend in den USA oder Europa",
-    "Ein internationales Treffen zwischen Regierungen",
-    "Eine neue Gesundheitsstudie oder medizinische Empfehlung",
-    "Ein Trend in sozialen Medien oder der Creator Economy",
-    "Eine Sportnachricht mit Rekord oder Turnierergebnis",
-    "Eine Veränderung in Bildung oder Schule",
-    "Eine neue Entdeckung aus Astronomie oder Raumfahrt",
-    "Ein Trend in Landwirtschaft, Ernährung oder Restaurants"
-  ];
+  let selectedLevel    = "B2";
+  let selectedCategory = null;
+
+  const CATEGORY_SEEDS = {
+    Politik:      "Eine aktuelle politische Entscheidung oder Debatte in Europa",
+    Wirtschaft:   "Eine wirtschaftliche Entwicklung bei einem bekannten Unternehmen oder Markt",
+    Wissenschaft: "Eine neue wissenschaftliche Studie oder Entdeckung an einer Universität",
+    Technologie:  "Eine neue technologische Anwendung im Alltag der Menschen",
+    Gesellschaft: "Ein aktueller sozialer Trend oder eine gesellschaftliche Veränderung",
+    Kultur:       "Ein kulturelles Ereignis oder ein Trend in Kunst, Literatur oder Medien",
+    Umwelt:       "Eine Umwelt- oder Klimanachricht mit konkretem Ort oder Messwert",
+    Gesundheit:   "Eine neue Gesundheitsstudie oder medizinische Empfehlung für den Alltag",
+    Sport:        "Eine Sportnachricht mit Rekord, Turnierergebnis oder Athletenprofil",
+    Schule:       "Eine Veränderung oder Debatte im Bildungssystem oder Schulalltag",
+    Lifestyle:    "Ein Trend in Ernährung, Reisen, Mode oder Alltagskultur",
+    Kurioses:     "Eine ungewöhnliche oder überraschende Nachricht aus aller Welt"
+  };
+
+  const LEVEL_INSTRUCTIONS = {
+    A1: `- Sehr einfache Sätze (Subjekt + Verb + Objekt).\n- Nur die häufigsten 1000 deutschen Wörter.\n- Kurze Sätze (max. 8 Wörter pro Satz).\n- Kein Konjunktiv, kein Passiv.`,
+    A2: `- Einfache Sätze mit gelegentlichen Nebensätzen.\n- Grundlegender Wortschatz, keine Fachsprache.\n- Sätze max. 12 Wörter.\n- Wenig Passiv, kein Konjunktiv II.`,
+    B1: `- Klare, verständliche Sätze mit Nebensätzen.\n- Alltagsnaher Wortschatz mit einigen Fachbegriffen.\n- Gelegentliches Passiv erlaubt.`,
+    B2: `- Journalistischer Stil, sachlich und klar.\n- Differenzierter Wortschatz, Fachbegriffe mit Kontext.\n- Passiv und Nebensätze normal einsetzen.`,
+    C1: `- Gehobener journalistischer Stil.\n- Komplexe Satzstrukturen und reichhaltiger Wortschatz.\n- Konjunktiv I für indirekte Rede verwenden.\n- Nominalisierungen und abstrakte Konzepte einsetzen.`,
+    C2: `- Anspruchsvoller, literarisch-journalistischer Stil.\n- Komplexe Hypotaxen, Parenthesen, rhetorische Mittel.\n- Vollständige Beherrschung aller grammatischen Strukturen.\n- Nuancierter, präziser Wortschatz auf muttersprachlichem Niveau.`
+  };
 
   const ARTICLE_SCHEMA = {
     type: "object",
     properties: {
-      domain: {
-        type: "string",
-        enum: [
-          "Politik",
-          "Wirtschaft",
-          "Wissenschaft",
-          "Technologie",
-          "Gesellschaft",
-          "Kultur",
-          "Umwelt",
-          "Gesundheit",
-          "Kurioses",
-          "Sport",
-          "Bildung",
-          "Lifestyle"
-        ]
-      },
-      title: {
-        type: "string"
-      },
-      vocab: {
-        type: "array",
-        minItems: 6,
-        maxItems: 6,
-        items: {
-          type: "object",
-          properties: {
-            word: {
-              type: "string"
-            },
-            definition: {
-              type: "string"
-            },
-            example: {
-              type: "string"
-            }
-          },
-          required: ["word", "definition", "example"]
-        }
-      },
-      paragraphs: {
-        type: "array",
-        minItems: 4,
-        maxItems: 4,
-        items: {
-          type: "string"
-        }
-      },
-      comprehension: {
-        type: "array",
-        minItems: 4,
-        maxItems: 4,
-        items: {
-          type: "string"
-        }
-      },
-      discussion: {
-        type: "array",
-        minItems: 4,
-        maxItems: 4,
-        items: {
-          type: "string"
-        }
-      }
+      domain: { type: "string", enum: ["Politik","Wirtschaft","Wissenschaft","Technologie","Gesellschaft","Kultur","Umwelt","Gesundheit","Kurioses","Sport","Bildung","Lifestyle"] },
+      title:  { type: "string" },
+      vocab:  { type: "array", minItems: 6, maxItems: 6, items: { type: "object", properties: { word: {type:"string"}, definition: {type:"string"}, example: {type:"string"} }, required: ["word","definition","example"] } },
+      paragraphs:    { type: "array", minItems: 4, maxItems: 4, items: { type: "string" } },
+      comprehension: { type: "array", minItems: 4, maxItems: 4, items: { type: "string" } },
+      discussion:    { type: "array", minItems: 4, maxItems: 4, items: { type: "string" } }
     },
-    required: [
-      "domain",
-      "title",
-      "vocab",
-      "paragraphs",
-      "comprehension",
-      "discussion"
-    ]
+    required: ["domain","title","vocab","paragraphs","comprehension","discussion"]
   };
 
-  const PROMPT_TEMPLATE = (seed) => `
-Du bist ein Redakteur für eine deutsche Sprachlernplattform.
+  function buildPrompt(category, level) {
+    return `Du bist ein Redakteur für eine deutsche Sprachlernplattform.
 
-Erstelle einen originellen, fiktiven, aber realistisch klingenden Daily-News-Artikel auf B2-Niveau.
+Erstelle einen originellen, fiktiven, aber realistisch klingenden Daily-News-Artikel auf ${level}-Niveau.
 
-Thema:
-${seed}
+Thema: ${CATEGORY_SEEDS[category]}
 
-Regeln:
+Sprachniveau-Regeln für ${level}:
+${LEVEL_INSTRUCTIONS[level]}
+
+Allgemeine Regeln:
 - Alles auf Deutsch.
 - Neutraler, sachlicher, journalistischer Ton.
-- Keine Meinungen.
-- Keine Spekulation.
-- Keine Quellenangaben.
-- Der Artikel soll aktuell klingen.
-- Verwende Wörter wie „kürzlich“, „diese Woche“, „gestern“ oder „heute“.
+- Keine Meinungen, keine Spekulation, keine Quellenangaben.
+- Der Artikel soll aktuell klingen. Verwende Wörter wie „kürzlich", „diese Woche", „gestern" oder „heute".
 - Nenne mindestens einen konkreten Ort, eine konkrete Zahl oder eine Organisation.
-- Schreibe genau 4 Absätze.
-- Jeder Absatz soll 3 bis 4 Sätze haben.
-- Erstelle genau 6 Vokabeleinträge.
-- Erstelle genau 4 Verständnisfragen.
-- Erstelle genau 4 offene Diskussionsfragen.
+- Schreibe genau 4 Absätze mit je 3 bis 4 Sätzen.
+- Erstelle genau 6 Vokabeleinträge passend zum ${level}-Niveau.
+- Erstelle genau 4 Verständnisfragen passend zum ${level}-Niveau.
+- Erstelle genau 4 offene Diskussionsfragen passend zum ${level}-Niveau.
 `;
-
-  let usedSeeds = [];
-
-  function pickSeed() {
-    if (usedSeeds.length >= TOPIC_SEEDS.length) {
-      usedSeeds = [];
-    }
-
-    const available = TOPIC_SEEDS
-      .map((seed, index) => index)
-      .filter(index => !usedSeeds.includes(index));
-
-    const idx = available[Math.floor(Math.random() * available.length)];
-    usedSeeds.push(idx);
-
-    return TOPIC_SEEDS[idx];
   }
 
+  // ── Level buttons ────────────────────────────────────────
+  document.getElementById("levelRow").addEventListener("click", e => {
+    const btn = e.target.closest(".pick-btn");
+    if (!btn) return;
+    document.querySelectorAll("#levelRow .pick-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    selectedLevel = btn.dataset.level;
+  });
+
+  // ── Category buttons ─────────────────────────────────────
+  document.getElementById("categoryRow").addEventListener("click", e => {
+    const btn = e.target.closest(".pick-btn");
+    if (!btn || btn.classList.contains("random-btn")) return;
+    document.querySelectorAll("#categoryRow .pick-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    selectedCategory = btn.dataset.category;
+  });
+
+  // ── Random category ──────────────────────────────────────
+  function pickRandomCategory() {
+    const categories = Object.keys(CATEGORY_SEEDS);
+    const random = categories[Math.floor(Math.random() * categories.length)];
+    document.querySelectorAll("#categoryRow .pick-btn").forEach(b => b.classList.remove("active"));
+    const btn = document.querySelector(`#categoryRow [data-category="${random}"]`);
+    if (btn) btn.classList.add("active");
+    selectedCategory = random;
+  }
+
+  // ── Generate ─────────────────────────────────────────────
   async function generate() {
+    if (!selectedCategory) {
+      showError("Bitte wähle zuerst ein Thema aus.");
+      return;
+    }
 
     setLoading(true);
     hideError();
@@ -585,16 +292,7 @@ Regeln:
 
     try {
       const requestBody = {
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                text: PROMPT_TEMPLATE(pickSeed())
-              }
-            ]
-          }
-        ],
+        contents: [{ role: "user", parts: [{ text: buildPrompt(selectedCategory, selectedLevel) }] }],
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 4096,
@@ -603,60 +301,30 @@ Regeln:
         }
       };
 
-      const res = await fetch(PROXY_URL, {   // was: GEMINI_URL
+      const res = await fetch(PROXY_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify(requestBody)
       });
 
       const responseText = await res.text();
-
       let data;
+      try { data = JSON.parse(responseText); }
+      catch(e) { showDebug("Raw HTTP response:\n\n" + responseText); throw new Error("Die API-Antwort war kein gültiges JSON."); }
 
-      try {
-        data = JSON.parse(responseText);
-      } catch (e) {
-        showDebug("Raw HTTP response:\n\n" + responseText);
-        throw new Error("Die API-Antwort selbst war kein gültiges JSON.");
-      }
+      if (!res.ok) { showDebug(JSON.stringify(data,null,2)); throw new Error(data.error?.message || "HTTP " + res.status); }
 
-      console.log("FULL GEMINI RESPONSE:", data);
-
-      if (!res.ok) {
-        showDebug(JSON.stringify(data, null, 2));
-        throw new Error(data.error?.message || "HTTP " + res.status);
-      }
-
-      const raw = extractGeminiText(data);
-
-      if (!raw) {
-        showDebug(JSON.stringify(data, null, 2));
-
-        const finishReason = data.candidates?.[0]?.finishReason || "unknown";
-        throw new Error(
-          "Gemini hat keinen Text zurückgegeben. Finish reason: " + finishReason
-        );
-      }
+      const raw = (data.candidates?.[0]?.content?.parts || []).map(p => p.text||"").join("\n").trim();
+      if (!raw) { showDebug(JSON.stringify(data,null,2)); throw new Error("Gemini hat keinen Text zurückgegeben. Finish reason: " + (data.candidates?.[0]?.finishReason||"unknown")); }
 
       let parsed;
-
-      try {
-        parsed = JSON.parse(raw);
-      } catch (e) {
-        showDebug(
-          "Raw model output:\n\n" +
-          raw +
-          "\n\nFull API response:\n\n" +
-          JSON.stringify(data, null, 2)
-        );
-
-        throw new Error("Gemini hat Text zurückgegeben, aber kein gültiges JSON.");
-      }
+      try { parsed = JSON.parse(raw); }
+      catch(e) { showDebug("Raw model output:\n\n" + raw); throw new Error("Gemini hat Text zurückgegeben, aber kein gültiges JSON."); }
 
       normalizeArticleData(parsed);
       render(parsed);
 
-    } catch (e) {
+    } catch(e) {
       console.error(e);
       showError("Fehler: " + e.message);
     } finally {
@@ -664,131 +332,60 @@ Regeln:
     }
   }
 
-  function extractGeminiText(data) {
-    const parts = data.candidates?.[0]?.content?.parts || [];
-
-    return parts
-      .map(part => part.text || "")
-      .join("\n")
-      .trim();
-  }
-
   function normalizeArticleData(d) {
-    if (!d || typeof d !== "object") {
-      throw new Error("Die Antwort ist kein gültiges Objekt.");
-    }
-
-    if (!d.domain) {
-      d.domain = "Aktuell";
-    }
-
-    if (!d.title) {
-      d.title = "Ohne Titel";
-    }
-
-    if (!Array.isArray(d.vocab)) {
-      d.vocab = [];
-    }
-
-    if (!Array.isArray(d.paragraphs)) {
-      d.paragraphs = [];
-    }
-
-    if (!Array.isArray(d.comprehension)) {
-      d.comprehension = [];
-    }
-
-    if (!Array.isArray(d.discussion)) {
-      d.discussion = [];
-    }
+    if (!d || typeof d !== "object") throw new Error("Die Antwort ist kein gültiges Objekt.");
+    if (!d.domain)                   d.domain        = selectedCategory;
+    if (!d.title)                    d.title         = "Ohne Titel";
+    if (!Array.isArray(d.vocab))         d.vocab         = [];
+    if (!Array.isArray(d.paragraphs))    d.paragraphs    = [];
+    if (!Array.isArray(d.comprehension)) d.comprehension = [];
+    if (!Array.isArray(d.discussion))    d.discussion    = [];
   }
 
   function render(d) {
-    document.getElementById("domainTag").textContent = d.domain;
+    document.getElementById("levelTag").textContent     = selectedLevel;
+    document.getElementById("domainTag").textContent    = d.domain;
     document.getElementById("articleTitle").textContent = d.title;
 
-    document.getElementById("vocabGrid").innerHTML = d.vocab
-      .slice(0, 6)
-      .map(v => `
-        <div class="vocab-card">
-          <div class="vocab-word">${escapeHtml(v.word || "")}</div>
-          <div class="vocab-def">${escapeHtml(v.definition || "")}</div>
-          <div class="vocab-ex">${escapeHtml(v.example || "")}</div>
-        </div>
-      `)
-      .join("");
+    document.getElementById("vocabGrid").innerHTML = d.vocab.slice(0,6).map(v => `
+      <div class="vocab-card">
+        <div class="vocab-word">${escapeHtml(v.word||"")}</div>
+        <div class="vocab-def">${escapeHtml(v.definition||"")}</div>
+        <div class="vocab-ex">${escapeHtml(v.example||"")}</div>
+      </div>`).join("");
 
-    document.getElementById("articleBody").innerHTML = d.paragraphs
-      .slice(0, 4)
-      .map(p => `<p>${escapeHtml(p || "")}</p>`)
-      .join("");
+    document.getElementById("articleBody").innerHTML =
+      d.paragraphs.slice(0,4).map(p => `<p>${escapeHtml(p)}</p>`).join("");
 
-    document.getElementById("comprehensionList").innerHTML = d.comprehension
-      .slice(0, 4)
-      .map((q, i) => `
-        <div class="q-item">
-          <span class="q-num">${i + 1}</span>
-          <span class="q-text">${escapeHtml(q || "")}</span>
-        </div>
-      `)
-      .join("");
+    document.getElementById("comprehensionList").innerHTML =
+      d.comprehension.slice(0,4).map((q,i) => `
+        <div class="q-item"><span class="q-num">${i+1}</span><span class="q-text">${escapeHtml(q)}</span></div>`).join("");
 
-    document.getElementById("discussionList").innerHTML = d.discussion
-      .slice(0, 4)
-      .map((q, i) => `
-        <div class="q-item">
-          <span class="q-num">${i + 1}</span>
-          <span class="q-text">${escapeHtml(q || "")}</span>
-        </div>
-      `)
-      .join("");
+    document.getElementById("discussionList").innerHTML =
+      d.discussion.slice(0,4).map((q,i) => `
+        <div class="q-item"><span class="q-num">${i+1}</span><span class="q-text">${escapeHtml(q)}</span></div>`).join("");
 
     document.getElementById("articleOuter").style.display = "block";
-
-    document.getElementById("articleOuter").scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
+    document.getElementById("articleOuter").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  function escapeHtml(value) {
-    return String(value)
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
+  function escapeHtml(v) {
+    return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
   }
 
   function setLoading(on) {
     document.getElementById("loadingBox").style.display = on ? "block" : "none";
     document.getElementById("genBtn").disabled = on;
-
-    document.getElementById("genBtn").textContent = on
-      ? "⏳  Generiere …"
-      : "↻  Neuen Artikel generieren";
+    document.getElementById("genBtn").textContent = on ? "⏳  Generiere …" : "↻  Artikel generieren";
   }
 
-  function showError(message) {
-    const errorBox = document.getElementById("errorBox");
-    errorBox.textContent = message;
-    errorBox.style.display = "block";
-  }
+  function showError(msg) { const b = document.getElementById("errorBox"); b.textContent = msg; b.style.display = "block"; }
+  function hideError()    { document.getElementById("errorBox").style.display = "none"; }
+  function showDebug(msg) { const b = document.getElementById("debugBox"); b.textContent = msg; b.style.display = "block"; }
+  function hideDebug()    { document.getElementById("debugBox").style.display = "none"; }
 
-  function hideError() {
-    document.getElementById("errorBox").style.display = "none";
-  }
-
-  function showDebug(message) {
-    const debugBox = document.getElementById("debugBox");
-    debugBox.textContent = message;
-    debugBox.style.display = "block";
-  }
-
-  function hideDebug() {
-    document.getElementById("debugBox").style.display = "none";
-  }
+  // Pre-select a random category on load
+  pickRandomCategory();
 </script>
-
 </body>
 </html>
