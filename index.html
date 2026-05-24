@@ -1,694 +1,1142 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Langoo</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Deutsches Tagesgeschehen</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --ink:#1a1a18;--ink-mid:#4a4a45;--ink-muted:#8a8a82;
-  --paper:#f5f2eb;--paper-dark:#ede9df;
-  --accent:#c8392b;--accent-light:#f5e6e4;
-  --rule:#d4cfc4;
-  --serif:'Playfair Display',Georgia,serif;
-  --sans:'DM Sans',system-ui,sans-serif;
-}
-body{background:var(--paper);color:var(--ink);font-family:var(--sans);min-height:100vh}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── masthead ── */
-.masthead{border-bottom:3px double var(--ink);padding:1.25rem 2rem 1rem;text-align:center}
-.masthead-kicker{font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:4px}
-.masthead-title{font-family:var(--serif);font-size:clamp(26px,5vw,46px);font-weight:600;line-height:1}
-.masthead-title span{color:var(--accent)}
-.masthead-sub{font-size:11px;color:var(--ink-muted);letter-spacing:.12em;text-transform:uppercase;margin-top:6px}
+  :root {
+    --ink: #1a1a18;
+    --ink-mid: #4a4a45;
+    --ink-muted: #8a8a82;
+    --paper: #f5f2eb;
+    --rule: #d4cfc4;
+    --accent: #c8392b;
+    --accent-light: #f5e6e4;
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+    --sidebar-w: 148px;
+  }
 
-/* ── controls bar ── */
-.controls-bar{max-width:820px;margin:1.5rem auto 0;padding:0 1.5rem}
-.controls-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
-.pill-group{display:flex;gap:0}
-.pill{padding:7px 16px;font-family:var(--sans);font-size:12px;font-weight:500;letter-spacing:.04em;border:1.5px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;transition:background .12s,color .12s}
-.pill:not(:last-child){border-right:none}
-.pill.active{background:var(--ink);color:var(--paper)}
-.pill:hover:not(.active){background:var(--paper-dark)}
-.pill:disabled{opacity:.4;cursor:not-allowed}
+  body { background: var(--paper); color: var(--ink); font-family: var(--sans); min-height: 100vh; }
 
-.sep{width:1px;height:28px;background:var(--rule);margin:0 4px}
+  /* ── Layout ── */
+  .app-wrapper { display: flex; min-height: 100vh; }
 
-.gen-btn{padding:8px 22px;background:var(--accent);color:white;font-family:var(--sans);font-size:13px;font-weight:500;border:none;cursor:pointer;letter-spacing:.04em;transition:background .15s;white-space:nowrap}
-.gen-btn:hover{background:#a82e22}
-.gen-btn:disabled{background:var(--ink-muted);cursor:not-allowed}
+  /* ── Sidebar ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    border-right: 3px double var(--ink);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding-top: 1.25rem;
+  }
 
-.controls-hint{font-size:12px;color:var(--ink-muted);margin-bottom:1rem;letter-spacing:.03em}
+  .sidebar-label {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    padding: 0 1rem 0.75rem;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0.5rem;
+  }
 
-/* ── mode tabs ── */
-.mode-tabs{display:flex;border-bottom:2px solid var(--ink);margin-bottom:1.5rem}
-.mode-tab{padding:9px 20px;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;border:none;background:transparent;cursor:pointer;color:var(--ink-muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .12s}
-.mode-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-.mode-tab:hover:not(.active){color:var(--ink)}
+  .lang-btn {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    padding: 10px 1rem;
+    background: transparent;
+    border: none;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    font-family: var(--sans);
+    text-align: left;
+    transition: all 0.15s;
+    color: var(--ink-mid);
+  }
+  .lang-btn:hover  { background: white; color: var(--ink); }
+  .lang-btn.active { background: white; color: var(--ink); font-weight: 500; border-left-color: var(--accent); }
 
-/* ── category chips ── */
-.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.chip{padding:5px 13px;font-size:11px;font-weight:500;border:1px solid var(--rule);background:white;color:var(--ink-mid);cursor:pointer;border-radius:2px;transition:all .12s}
-.chip.active{border-color:var(--ink);background:var(--ink);color:var(--paper)}
-.chip:hover:not(.active){border-color:var(--ink-mid)}
+  .lang-flag { font-size: 19px; line-height: 1; flex-shrink: 0; }
+  .lang-name { font-size: 12px; line-height: 1.2; }
 
-/* ── loading / error ── */
-.loading{display:none;text-align:center;padding:3rem;color:var(--ink-muted);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
-.loading-dots::after{content:'';animation:dots 1.2s steps(4,end) infinite}
-@keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}100%{content:''}}
-.error-box{display:none;max-width:820px;margin:0 auto .75rem;padding:11px 16px;background:var(--accent-light);border-left:3px solid var(--accent);color:var(--accent);font-size:13px}
+  /* ── Main ── */
+  .main-content { flex: 1; min-width: 0; }
 
-/* ── article ── */
-.article-outer{display:none;max-width:820px;margin:0 auto 4rem;padding:0 1.5rem;animation:fadeIn .4s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  /* ── Masthead ── */
+  .masthead { border-bottom: 3px double var(--ink); padding: 1.5rem 2rem 1rem; text-align: center; }
+  .masthead-kicker { font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 6px; }
+  .masthead-title  { font-family: var(--serif); font-size: clamp(24px,4vw,44px); font-weight: 600; line-height: 1; }
+  .masthead-title span { color: var(--accent); }
+  .masthead-sub    { font-size: 11px; color: var(--ink-muted); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 8px; }
 
-.tag-row{display:flex;align-items:center;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap}
-.tag{font-size:10px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;background:var(--ink);color:var(--paper);padding:3px 8px}
-.tag-accent{background:transparent;color:var(--accent);border:1px solid var(--accent)}
-.tag-source{background:transparent;color:var(--ink-muted);border:1px solid var(--rule);font-style:italic}
+  /* ── Mode tabs ── */
+  .mode-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--ink);
+  }
+  .mode-tab {
+    flex: 1;
+    padding: 10px 16px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    cursor: pointer;
+    color: var(--ink-muted);
+    transition: color 0.12s;
+  }
+  .mode-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .mode-tab:hover:not(.active) { color: var(--ink); }
 
-.rule-thick{border:none;border-top:2px solid var(--ink);margin:1.5rem 0}
-.section-eyebrow{font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+  /* ── Controls ── */
+  .controls { max-width: 680px; margin: 2rem auto; padding: 0 1.5rem; }
 
-.vocab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);margin-bottom:2rem}
-.vocab-card{background:white;padding:13px 15px}
-.vocab-word{font-family:var(--serif);font-size:15px;font-weight:600;color:var(--ink);margin-bottom:4px}
-.vocab-def{font-size:13px;color:var(--ink-mid);line-height:1.5;margin-bottom:5px}
-.vocab-ex{font-size:12px;color:var(--ink-muted);font-style:italic;line-height:1.5;border-top:1px solid var(--rule);padding-top:5px;margin-top:5px}
+  .control-label { font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; display: block; }
 
-/* classic text display */
-.classic-source-bar{background:var(--paper-dark);border:1px solid var(--rule);padding:10px 14px;margin-bottom:1.5rem;font-size:12px;color:var(--ink-mid);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
-.classic-source-bar a{color:var(--accent);text-decoration:none;font-size:11px;letter-spacing:.05em}
-.classic-source-bar a:hover{text-decoration:underline}
-.classic-text-notice{font-size:12px;color:var(--ink-muted);font-style:italic;margin-bottom:1rem;padding:8px 12px;border-left:2px solid var(--rule)}
+  .pick-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.5rem; }
 
-.article-headline{font-family:var(--serif);font-size:clamp(20px,4vw,34px);font-weight:600;line-height:1.25;margin-bottom:1rem}
-.article-byline{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:1.5rem;display:flex;align-items:center;gap:10px}
-.article-byline::after{content:'';flex:1;height:1px;background:var(--rule)}
-.article-body p{font-size:15px;line-height:1.8;color:var(--ink);margin-bottom:1.1rem;font-weight:300}
-.article-body p:first-child::first-letter{font-family:var(--serif);font-size:50px;font-weight:600;float:left;line-height:.85;margin:4px 8px 0 0;color:var(--accent)}
+  .pick-btn {
+    padding: 8px 14px;
+    background: white; color: var(--ink-mid);
+    font-family: var(--sans); font-size: 13px; font-weight: 500;
+    border: 1.5px solid var(--rule); cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .pick-btn:hover  { border-color: var(--ink-mid); color: var(--ink); }
+  .pick-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .pick-btn.random-btn { border-color: var(--accent); color: var(--accent); }
+  .pick-btn.random-btn:hover { background: var(--accent-light); }
+  .pick-btn.random-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
-.questions-row{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem}
-@media(max-width:580px){.questions-row{grid-template-columns:1fr}}
-.questions-block{background:white;border:1.5px solid var(--ink);padding:1.25rem}
-.questions-block h3{font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
-.q-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--rule);align-items:flex-start}
-.q-item:last-child{border-bottom:none;padding-bottom:0}
-.q-num{font-family:var(--serif);font-size:17px;font-weight:600;color:var(--accent);min-width:20px;line-height:1.4}
-.q-text{font-size:13px;line-height:1.65;color:var(--ink-mid);padding-top:2px}
+  #levelRow .pick-btn { flex: 1; min-width: 44px; text-align: center; }
 
-.next-row{text-align:center;padding-bottom:2rem}
-.next-btn{padding:9px 26px;background:transparent;color:var(--ink);font-family:var(--sans);font-size:13px;font-weight:500;border:1.5px solid var(--ink);cursor:pointer;letter-spacing:.04em}
-.next-btn:hover{background:var(--paper-dark)}
+  .gen-row { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .gen-btn { padding: 13px 36px; background: var(--accent); color: white; font-family: var(--sans); font-size: 14px; font-weight: 500; letter-spacing: 0.04em; border: none; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; gap: 10px; }
+  .gen-btn:hover    { background: #a82e22; }
+  .gen-btn:disabled { background: var(--ink-muted); cursor: not-allowed; }
+  .controls-hint { font-size: 12px; color: var(--ink-muted); letter-spacing: 0.04em; text-align: center; }
+
+  /* ── Loading / Error / Debug ── */
+  .loading { display: none; text-align: center; padding: 3rem; color: var(--ink-muted); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .loading-dots::after { content: ''; animation: dots 1.2s steps(4,end) infinite; }
+  @keyframes dots { 0%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} 100%{content:''} }
+
+  .error-box { display: none; max-width: 780px; margin: 0 auto 1rem; padding: 12px 16px; background: var(--accent-light); border-left: 3px solid var(--accent); color: var(--accent); font-size: 13px; white-space: pre-wrap; }
+  .debug-box { display: none; max-width: 780px; margin: 0 auto 2rem; padding: 12px 16px; background: #fff; border: 1px solid var(--rule); color: var(--ink-mid); font-size: 12px; white-space: pre-wrap; overflow-x: auto; }
+
+  /* ── Article ── */
+  .article-outer { display: none; max-width: 780px; margin: 0 auto 4rem; padding: 0 1.5rem; animation: fadeIn 0.5s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+  .tag-row { display: flex; align-items: center; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .tag { font-size: 10px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; background: var(--ink); color: var(--paper); padding: 3px 8px; }
+  .tag-domain { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  .tag-source { background: transparent; color: var(--ink-muted); border: 1px solid var(--rule); font-style: italic; text-transform: none; letter-spacing: 0; }
+
+  .rule-thick { border: none; border-top: 2px solid var(--ink); margin: 1.5rem 0; }
+  .section-eyebrow { font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-bottom: 2rem; }
+  .vocab-card { background: white; padding: 14px 16px; }
+  .vocab-word { font-family: var(--serif); font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+  .vocab-def  { font-size: 13px; color: var(--ink-mid); line-height: 1.5; margin-bottom: 6px; }
+  .vocab-ex   { font-size: 12px; color: var(--ink-muted); font-style: italic; line-height: 1.5; border-top: 1px solid var(--rule); padding-top: 6px; margin-top: 6px; }
+
+  .classic-notice {
+    font-size: 12px; color: var(--ink-muted); font-style: italic;
+    padding: 8px 12px; border-left: 2px solid var(--rule); margin-bottom: 1rem;
+  }
+  .classic-source-bar {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+    background: #ede9df; border: 1px solid var(--rule); padding: 9px 14px; margin-bottom: 1.25rem;
+    font-size: 12px; color: var(--ink-mid);
+  }
+  .classic-source-bar a { color: var(--accent); text-decoration: none; font-size: 11px; letter-spacing: 0.05em; }
+  .classic-source-bar a:hover { text-decoration: underline; }
+
+  .article-headline { font-family: var(--serif); font-size: clamp(20px,3.5vw,34px); font-weight: 600; line-height: 1.25; margin-bottom: 1rem; }
+  .article-byline { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; }
+  .article-byline::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+
+  .article-body p { font-size: 16px; line-height: 1.8; color: var(--ink); margin-bottom: 1.2rem; font-weight: 300; }
+  .article-body p:first-child::first-letter { font-family: var(--serif); font-size: 52px; font-weight: 600; float: left; line-height: 0.85; margin: 4px 8px 0 0; color: var(--accent); }
+
+  .questions-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+  .questions-block { background: white; border: 1.5px solid var(--ink); padding: 1.5rem; }
+  .questions-block h3 { font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+
+  .q-item { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--rule); align-items: flex-start; }
+  .q-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .q-num  { font-family: var(--serif); font-size: 18px; font-weight: 600; color: var(--accent); min-width: 22px; line-height: 1.4; }
+  .q-text { font-size: 14px; line-height: 1.65; color: var(--ink-mid); padding-top: 2px; }
+
+  .next-row { text-align: center; padding-bottom: 2rem; }
+  .next-btn { padding: 10px 28px; background: transparent; color: var(--ink); font-family: var(--sans); font-size: 13px; font-weight: 500; border: 1.5px solid var(--ink); cursor: pointer; letter-spacing: 0.04em; }
+  .next-btn:hover { background: #ede9df; }
+
+  /* ── Mobile ── */
+  @media (max-width: 640px) {
+    .app-wrapper { flex-direction: column; }
+    .sidebar {
+      width: 100%; height: auto; position: static;
+      border-right: none; border-bottom: 3px double var(--ink);
+      flex-direction: row; padding: 0;
+      overflow-x: auto; overflow-y: hidden;
+    }
+    .sidebar-label { display: none; }
+    .lang-btn {
+      flex-direction: column; align-items: center; gap: 3px;
+      padding: 10px 12px; border-left: none;
+      border-bottom: 3px solid transparent; flex-shrink: 0;
+    }
+    .lang-btn.active { border-left-color: transparent; border-bottom-color: var(--accent); }
+    .questions-row { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
 
-<header class="masthead">
-  <p class="masthead-kicker">Language Learning · Powered by AI</p>
-  <h1 class="masthead-title">Lan<span>goo</span></h1>
-  <p class="masthead-sub">Read. Learn. Every day.</p>
-</header>
+<div class="app-wrapper">
 
-<div class="controls-bar">
+  <!-- ── Sidebar ── -->
+  <nav class="sidebar" id="sidebar">
+    <span class="sidebar-label">Language</span>
+    <!-- injected by JS -->
+  </nav>
 
-  <!-- Mode tabs -->
-  <div class="mode-tabs">
-    <button class="mode-tab active" id="tabNews" onclick="switchMode('news')">📰 Daily News</button>
-    <button class="mode-tab" id="tabClassic" onclick="switchMode('classic')">📚 Classic Texts</button>
-  </div>
+  <!-- ── Main ── -->
+  <div class="main-content">
 
-  <!-- Language selector (shared) -->
-  <div class="controls-row">
-    <div class="pill-group" id="langPills"></div>
-  </div>
+    <header class="masthead">
+      <p class="masthead-kicker" id="uiKicker"></p>
+      <h1 class="masthead-title" id="uiTitle"></h1>
+      <p class="masthead-sub"    id="uiSub"></p>
+    </header>
 
-  <!-- Daily News controls -->
-  <div id="newsControls">
-    <div class="controls-hint">A random topic from around the world — different every time</div>
-    <button class="gen-btn" id="newsBtn" onclick="generateNews()">↻ &nbsp;Generate article</button>
-  </div>
-
-  <!-- Classic Texts controls -->
-  <div id="classicControls" style="display:none">
-    <div class="controls-hint">A random real text from Wikisource — authentic literature, free & public domain</div>
-    <div class="chip-row" id="categoryChips"></div>
-    <button class="gen-btn" id="classicBtn" onclick="generateClassic()">↻ &nbsp;Fetch a text</button>
-  </div>
-
-</div>
-
-<div class="error-box" id="errorBox"></div>
-<div class="loading" id="loadingBox"><span class="loading-dots">Working</span></div>
-
-<div class="article-outer" id="articleOuter">
-  <div class="tag-row" id="tagRow"></div>
-  <div id="classicSourceBar" style="display:none" class="classic-source-bar">
-    <span id="classicSourceTitle"></span>
-    <a id="classicSourceLink" href="#" target="_blank" rel="noopener">View on Wikisource ↗</a>
-  </div>
-  <div id="classicNotice" style="display:none" class="classic-text-notice">
-    Authentic text — difficulty may vary. Vocabulary and questions are generated by AI at B2 level.
-  </div>
-  <div class="section-eyebrow" id="vocabEyebrow"></div>
-  <div class="vocab-grid" id="vocabGrid"></div>
-  <hr class="rule-thick"/>
-  <h2 class="article-headline" id="articleTitle"></h2>
-  <div class="article-byline" id="articleByline"></div>
-  <div class="article-body" id="articleBody"></div>
-  <hr class="rule-thick"/>
-  <div class="questions-row">
-    <div class="questions-block">
-      <h3 id="comprehensionLabel"></h3>
-      <div id="comprehensionList"></div>
+    <!-- Mode tabs -->
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tabNews"    onclick="switchMode('news')">📰 <span id="uiTabNews"></span></button>
+      <button class="mode-tab"        id="tabClassic" onclick="switchMode('classic')">📚 <span id="uiTabClassic"></span></button>
     </div>
-    <div class="questions-block">
-      <h3 id="discussionLabel"></h3>
-      <div id="discussionList"></div>
+
+    <div class="controls">
+
+      <!-- Level row: shown in news mode only -->
+      <div id="levelSection">
+        <span class="control-label" id="uiLevelLabel"></span>
+        <div class="pick-row" id="levelRow">
+          <button class="pick-btn" data-level="A1">A1</button>
+          <button class="pick-btn" data-level="A2">A2</button>
+          <button class="pick-btn" data-level="B1">B1</button>
+          <button class="pick-btn active" data-level="B2">B2</button>
+          <button class="pick-btn" data-level="C1">C1</button>
+          <button class="pick-btn" data-level="C2">C2</button>
+        </div>
+      </div>
+
+      <!-- Category/genre row: changes per mode -->
+      <span class="control-label" id="uiTopicLabel"></span>
+      <div class="pick-row" id="categoryRow">
+        <!-- injected by JS -->
+      </div>
+
+      <div class="gen-row">
+        <button class="gen-btn" id="genBtn" onclick="handleGenerate()">↻</button>
+        <p class="controls-hint" id="uiHint"></p>
+      </div>
     </div>
-  </div>
-  <div class="next-row">
-    <button class="next-btn" id="nextBtn" onclick="handleNext()">Next →</button>
-  </div>
-</div>
+
+    <div class="error-box" id="errorBox"></div>
+    <div class="debug-box"  id="debugBox"></div>
+    <div class="loading"    id="loadingBox"><span class="loading-dots" id="uiLoading"></span></div>
+
+    <div class="article-outer" id="articleOuter">
+      <div class="tag-row" id="tagRow">
+        <span class="tag" id="levelTag">B2</span>
+        <span class="tag tag-domain" id="domainTag"></span>
+      </div>
+
+      <!-- Classic texts extras -->
+      <div id="classicSourceBar" class="classic-source-bar" style="display:none">
+        <span id="classicSourceTitle"></span>
+        <a id="classicSourceLink" href="#" target="_blank" rel="noopener">View on Wikisource ↗</a>
+      </div>
+      <div id="classicNotice" class="classic-notice" style="display:none"></div>
+
+      <div class="section-eyebrow" id="uiVocabHeader"></div>
+      <div class="vocab-grid" id="vocabGrid"></div>
+
+      <hr class="rule-thick" />
+
+      <h2 class="article-headline" id="articleTitle"></h2>
+      <div class="article-byline"  id="uiByline"></div>
+      <div class="article-body"    id="articleBody"></div>
+
+      <hr class="rule-thick" />
+
+      <div class="questions-row">
+        <div class="questions-block">
+          <h3 id="uiComprehensionHeader"></h3>
+          <div id="comprehensionList"></div>
+        </div>
+        <div class="questions-block">
+          <h3 id="uiDiscussionHeader"></h3>
+          <div id="discussionList"></div>
+        </div>
+      </div>
+
+      <div class="next-row">
+        <button class="next-btn" id="uiNextBtn" onclick="handleGenerate()"></button>
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /app-wrapper -->
 
 <script>
-// ============================================================
-//  🔑  PASTE YOUR GEMINI API KEY HERE
-// ============================================================
-const GEMINI_API_KEY = "PASTE_YOUR_KEY_HERE";
-// ============================================================
+  // ── Cloudflare proxy (unchanged from your working version) ──
+  const PROXY_URL = "https://autumn-rice-2cd2.jorgeworkspace-nascimento.workers.dev";
 
-const GEMINI_URL = () =>
-  `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+  // ── State ───────────────────────────────────────────────────
+  let selectedLevel    = "B2";
+  let selectedCategory = null;
+  let currentLang      = "de";
+  let currentMode      = "news";  // "news" | "classic"
 
-// ── Language config ──────────────────────────────────────────
-const LANGS = {
-  de: {
-    label:"Deutsch", flag:"🇩🇪",
-    wikisub:"de",
-    ui:{
-      vocab:"Vokabeln", comprehension:"Fragen zum Text",
-      discussion:"Diskussionsfragen", byline:"Tagesgeschehen",
-      classicByline:"Klassischer Text", next:"Nächster Artikel →"
+  // ── Language definitions (your exact original object) ───────
+  const LANGUAGES = {
+    de: {
+      name: "Deutsch", flag: "🇩🇪", targetLanguage: "German", htmlLang: "de",
+      titleHTML: 'Deutsches <span>Tages</span>geschehen',
+      pageTitle: "Deutsches Tagesgeschehen",
+      kicker: "KI-gestütztes Sprachlernen",
+      sub: "Nachrichten für Sprachenlernende",
+      tabNews: "Tagesgeschehen", tabClassic: "Klassische Texte",
+      levelLabel: "Sprachniveau", topicLabel: "Thema", genreLabel: "Gattung",
+      generateBtn: "Artikel generieren", generatingBtn: "⏳ Generiere …",
+      fetchBtn: "Text abrufen", fetchingBtn: "⏳ Lade Text …",
+      hint: "Niveau und Thema wählen — jedes Mal ein neuer Artikel",
+      classicHint: "Gattung wählen — ein echter Text aus Wikisource",
+      loading: "Redaktion arbeitet",
+      classicLoading: "Wikisource wird abgerufen",
+      vocabHeader: "Vokabeln",
+      byline: "KI-Redaktion · Tagesgeschehen",
+      classicByline: "Wikisource · Klassischer Text",
+      classicNotice: "Authentischer Text — Schwierigkeitsgrad kann variieren. Vokabeln und Fragen werden von der KI auf B2-Niveau erstellt.",
+      comprehensionHeader: "Fragen zum Text",
+      discussionHeader: "Diskussionsfragen",
+      nextBtn: "Nächster Artikel →",
+      nextClassicBtn: "Nächster Text →",
+      randomBtn: "↻ Zufall",
+      noCategory: "Bitte wähle zuerst ein Thema aus.",
+      noGenre: "Bitte wähle zuerst eine Gattung aus.",
+      categories: {
+        Politik:"Politik", Wirtschaft:"Wirtschaft", Wissenschaft:"Wissenschaft",
+        Technologie:"Technologie", Gesellschaft:"Gesellschaft", Kultur:"Kultur",
+        Umwelt:"Umwelt", Gesundheit:"Gesundheit", Sport:"Sport",
+        Schule:"Schule", Lifestyle:"Lifestyle", Kurioses:"Kurioses"
+      },
+      // Wikisource: exact category name → display label
+      genres: {
+        "Gedicht":   "Gedicht",
+        "Erzählung": "Erzählung",
+        "Novelle":   "Novelle",
+        "Märchen":   "Märchen",
+        "Roman":     "Roman",
+        "Essay":     "Essay"
+      },
+      wikisub: "de"
     },
-    categories:{
-      "Gedicht":       {label:"Gedicht",    cat:"Gedicht"},
-      "Erzählung":     {label:"Erzählung",  cat:"Erzählung"},
-      "Novelle":       {label:"Novelle",    cat:"Novelle"},
-      "Märchen":       {label:"Märchen",    cat:"Märchen"},
-      "Roman":         {label:"Roman",      cat:"Roman"},
-      "Essay":         {label:"Essay",      cat:"Essay"},
-    }
-  },
-  fr: {
-    label:"Français", flag:"🇫🇷",
-    wikisub:"fr",
-    ui:{
-      vocab:"Vocabulaire", comprehension:"Questions de compréhension",
-      discussion:"Questions de discussion", byline:"Actualités du jour",
-      classicByline:"Texte classique", next:"Article suivant →"
+    en: {
+      name: "English", flag: "🇬🇧", targetLanguage: "English", htmlLang: "en",
+      titleHTML: '<span>Daily</span> Dispatch',
+      pageTitle: "Daily Dispatch",
+      kicker: "AI-powered language learning",
+      sub: "News for language learners",
+      tabNews: "Daily News", tabClassic: "Classic Texts",
+      levelLabel: "Language level", topicLabel: "Topic", genreLabel: "Genre",
+      generateBtn: "Generate article", generatingBtn: "⏳ Generating …",
+      fetchBtn: "Fetch a text", fetchingBtn: "⏳ Fetching …",
+      hint: "Choose a level and topic — a new article every time",
+      classicHint: "Choose a genre — a real text from Wikisource",
+      loading: "Newsroom working",
+      classicLoading: "Fetching from Wikisource",
+      vocabHeader: "Vocabulary",
+      byline: "AI Newsroom · Daily Dispatch",
+      classicByline: "Wikisource · Classic Text",
+      classicNotice: "Authentic text — difficulty may vary. Vocabulary and questions are generated by AI.",
+      comprehensionHeader: "Comprehension questions",
+      discussionHeader: "Discussion questions",
+      nextBtn: "Next article →",
+      nextClassicBtn: "Next text →",
+      randomBtn: "↻ Random",
+      noCategory: "Please select a topic first.",
+      noGenre: "Please select a genre first.",
+      categories: {
+        Politik:"Politics", Wirtschaft:"Economics", Wissenschaft:"Science",
+        Technologie:"Technology", Gesellschaft:"Society", Kultur:"Culture",
+        Umwelt:"Environment", Gesundheit:"Health", Sport:"Sport",
+        Schule:"Education", Lifestyle:"Lifestyle", Kurioses:"Curiosities"
+      },
+      genres: {
+        "Poetry":        "Poetry",
+        "Short stories": "Short stories",
+        "Novels":        "Novels",
+        "Essays":        "Essays",
+        "Speeches":      "Speeches",
+        "Fairy tales":   "Fairy tales"
+      },
+      wikisub: "en"
     },
-    categories:{
-      "Poèmes":    {label:"Poèmes",   cat:"Poèmes"},
-      "Contes":    {label:"Contes",   cat:"Contes"},
-      "Nouvelles": {label:"Nouvelles",cat:"Nouvelles"},
-      "Romans":    {label:"Romans",   cat:"Romans"},
-      "Essais":    {label:"Essais",   cat:"Essais"},
-      "Théâtre":   {label:"Théâtre", cat:"Théâtre"},
-    }
-  },
-  es: {
-    label:"Español", flag:"🇪🇸",
-    wikisub:"es",
-    ui:{
-      vocab:"Vocabulario", comprehension:"Preguntas de comprensión",
-      discussion:"Preguntas de discusión", byline:"Noticias del día",
-      classicByline:"Texto clásico", next:"Siguiente artículo →"
+    it: {
+      name: "Italiano", flag: "🇮🇹", targetLanguage: "Italian", htmlLang: "it",
+      titleHTML: 'Il <span>Quotidiano</span>',
+      pageTitle: "Il Quotidiano",
+      kicker: "Apprendimento linguistico con IA",
+      sub: "Notizie per chi studia le lingue",
+      tabNews: "Notizie", tabClassic: "Testi classici",
+      levelLabel: "Livello linguistico", topicLabel: "Argomento", genreLabel: "Genere",
+      generateBtn: "Genera articolo", generatingBtn: "⏳ Generazione …",
+      fetchBtn: "Trova un testo", fetchingBtn: "⏳ Caricamento …",
+      hint: "Scegli livello e argomento — ogni volta un articolo nuovo",
+      classicHint: "Scegli un genere — un testo autentico da Wikisource",
+      loading: "La redazione è al lavoro",
+      classicLoading: "Recupero da Wikisource",
+      vocabHeader: "Vocabolario",
+      byline: "Redazione IA · Il Quotidiano",
+      classicByline: "Wikisource · Testo classico",
+      classicNotice: "Testo autentico — il livello di difficoltà può variare. Vocabolario e domande sono generati dall'IA.",
+      comprehensionHeader: "Domande di comprensione",
+      discussionHeader: "Domande di discussione",
+      nextBtn: "Articolo successivo →",
+      nextClassicBtn: "Testo successivo →",
+      randomBtn: "↻ Casuale",
+      noCategory: "Seleziona prima un argomento.",
+      noGenre: "Seleziona prima un genere.",
+      categories: {
+        Politik:"Politica", Wirtschaft:"Economia", Wissenschaft:"Scienza",
+        Technologie:"Tecnologia", Gesellschaft:"Società", Kultur:"Cultura",
+        Umwelt:"Ambiente", Gesundheit:"Salute", Sport:"Sport",
+        Schule:"Istruzione", Lifestyle:"Lifestyle", Kurioses:"Curiosità"
+      },
+      genres: {
+        "Poesie":   "Poesie",
+        "Racconti": "Racconti",
+        "Romanzi":  "Romanzi",
+        "Saggi":    "Saggi",
+        "Novelle":  "Novelle",
+        "Teatro":   "Teatro"
+      },
+      wikisub: "it"
     },
-    categories:{
-      "Poesía":  {label:"Poesía",  cat:"Poesía"},
-      "Cuentos": {label:"Cuentos", cat:"Cuentos"},
-      "Novelas": {label:"Novelas", cat:"Novelas"},
-      "Ensayos": {label:"Ensayos", cat:"Ensayos"},
-      "Teatro":  {label:"Teatro",  cat:"Teatro"},
-      "Fábulas": {label:"Fábulas", cat:"Fábulas"},
-    }
-  },
-  it: {
-    label:"Italiano", flag:"🇮🇹",
-    wikisub:"it",
-    ui:{
-      vocab:"Vocabolario", comprehension:"Domande di comprensione",
-      discussion:"Domande di discussione", byline:"Notizie del giorno",
-      classicByline:"Testo classico", next:"Articolo successivo →"
+    nl: {
+      name: "Nederlands", flag: "🇳🇱", targetLanguage: "Dutch", htmlLang: "nl",
+      titleHTML: 'Het <span>Dag</span>blad',
+      pageTitle: "Het Dagblad",
+      kicker: "AI-gestuurd taalleren",
+      sub: "Nieuws voor taalleerders",
+      tabNews: "Nieuws", tabClassic: "Klassieke teksten",
+      levelLabel: "Taalniveau", topicLabel: "Onderwerp", genreLabel: "Genre",
+      generateBtn: "Artikel genereren", generatingBtn: "⏳ Genereren …",
+      fetchBtn: "Tekst ophalen", fetchingBtn: "⏳ Ophalen …",
+      hint: "Kies niveau en onderwerp — elke keer een nieuw artikel",
+      classicHint: "Kies een genre — een echte tekst van Wikisource",
+      loading: "Redactie is bezig",
+      classicLoading: "Ophalen van Wikisource",
+      vocabHeader: "Woordenschat",
+      byline: "AI-redactie · Het Dagblad",
+      classicByline: "Wikisource · Klassieke tekst",
+      classicNotice: "Authentieke tekst — moeilijkheidsgraad kan variëren. Woordenschat en vragen worden door AI gegenereerd.",
+      comprehensionHeader: "Begripssvragen",
+      discussionHeader: "Discussievragen",
+      nextBtn: "Volgend artikel →",
+      nextClassicBtn: "Volgende tekst →",
+      randomBtn: "↻ Willekeurig",
+      noCategory: "Selecteer eerst een onderwerp.",
+      noGenre: "Selecteer eerst een genre.",
+      categories: {
+        Politik:"Politiek", Wirtschaft:"Economie", Wissenschaft:"Wetenschap",
+        Technologie:"Technologie", Gesellschaft:"Samenleving", Kultur:"Cultuur",
+        Umwelt:"Milieu", Gesundheit:"Gezondheid", Sport:"Sport",
+        Schule:"Onderwijs", Lifestyle:"Lifestyle", Kurioses:"Curiosa"
+      },
+      genres: {
+        "Poëzie":     "Poëzie",
+        "Literatuur": "Literatuur",
+        "Toneel":     "Toneel",
+        "Essays":     "Essays"
+      },
+      wikisub: "nl"
     },
-    categories:{
-      "Poesie":   {label:"Poesie",   cat:"Poesie"},
-      "Racconti": {label:"Racconti", cat:"Racconti"},
-      "Romanzi":  {label:"Romanzi",  cat:"Romanzi"},
-      "Saggi":    {label:"Saggi",    cat:"Saggi"},
-      "Novelle":  {label:"Novelle",  cat:"Novelle"},
-      "Teatro":   {label:"Teatro",   cat:"Teatro"},
-    }
-  },
-  pt: {
-    label:"Português", flag:"🇧🇷",
-    wikisub:"pt",
-    ui:{
-      vocab:"Vocabulário", comprehension:"Perguntas de compreensão",
-      discussion:"Perguntas de discussão", byline:"Notícias do dia",
-      classicByline:"Texto clássico", next:"Próximo artigo →"
+    es: {
+      name: "Español", flag: "🇪🇸", targetLanguage: "Spanish", htmlLang: "es",
+      titleHTML: 'El <span>Diario</span>',
+      pageTitle: "El Diario",
+      kicker: "Aprendizaje de idiomas con IA",
+      sub: "Noticias para estudiantes de idiomas",
+      tabNews: "Noticias", tabClassic: "Textos clásicos",
+      levelLabel: "Nivel de idioma", topicLabel: "Tema", genreLabel: "Género",
+      generateBtn: "Generar artículo", generatingBtn: "⏳ Generando …",
+      fetchBtn: "Buscar un texto", fetchingBtn: "⏳ Cargando …",
+      hint: "Elige nivel y tema — un artículo nuevo cada vez",
+      classicHint: "Elige un género — un texto real de Wikisource",
+      loading: "La redacción trabaja",
+      classicLoading: "Obteniendo de Wikisource",
+      vocabHeader: "Vocabulario",
+      byline: "Redacción IA · El Diario",
+      classicByline: "Wikisource · Texto clásico",
+      classicNotice: "Texto auténtico — la dificultad puede variar. El vocabulario y las preguntas son generados por IA.",
+      comprehensionHeader: "Preguntas de comprensión",
+      discussionHeader: "Preguntas de debate",
+      nextBtn: "Siguiente artículo →",
+      nextClassicBtn: "Siguiente texto →",
+      randomBtn: "↻ Aleatorio",
+      noCategory: "Por favor selecciona un tema primero.",
+      noGenre: "Por favor selecciona un género primero.",
+      categories: {
+        Politik:"Política", Wirtschaft:"Economía", Wissenschaft:"Ciencia",
+        Technologie:"Tecnología", Gesellschaft:"Sociedad", Kultur:"Cultura",
+        Umwelt:"Medio ambiente", Gesundheit:"Salud", Sport:"Deporte",
+        Schule:"Educación", Lifestyle:"Estilo de vida", Kurioses:"Curiosidades"
+      },
+      genres: {
+        "Poesía":  "Poesía",
+        "Cuentos": "Cuentos",
+        "Novelas": "Novelas",
+        "Ensayos": "Ensayos",
+        "Teatro":  "Teatro",
+        "Fábulas": "Fábulas"
+      },
+      wikisub: "es"
     },
-    categories:{
-      "Poesia":       {label:"Poesia",        cat:"Poesia portuguesa"},
-      "Contos BR":    {label:"Contos BR",     cat:"Contos brasileiros"},
-      "Contos PT":    {label:"Contos PT",     cat:"Contos portugueses"},
-      "Crônicas":     {label:"Crônicas",      cat:"Crônicas"},
-      "Romance":      {label:"Romance",       cat:"Romance"},
-      "Contos Grimm": {label:"Contos Grimm",  cat:"Contos de Grimm"},
-    }
-  },
-  en: {
-    label:"English", flag:"🇬🇧",
-    wikisub:"en",
-    ui:{
-      vocab:"Vocabulary", comprehension:"Comprehension questions",
-      discussion:"Discussion questions", byline:"Today's reading",
-      classicByline:"Classic text", next:"Next article →"
+    pt: {
+      name: "Português", flag: "🇧🇷", targetLanguage: "Brazilian Portuguese", htmlLang: "pt",
+      titleHTML: 'O <span>Diário</span>',
+      pageTitle: "O Diário",
+      kicker: "Aprendizado de idiomas com IA",
+      sub: "Notícias para estudantes de idiomas",
+      tabNews: "Notícias", tabClassic: "Textos clássicos",
+      levelLabel: "Nível de idioma", topicLabel: "Tema", genreLabel: "Gênero",
+      generateBtn: "Gerar artigo", generatingBtn: "⏳ Gerando …",
+      fetchBtn: "Buscar um texto", fetchingBtn: "⏳ Carregando …",
+      hint: "Escolha o nível e o tema — um artigo novo a cada vez",
+      classicHint: "Escolha um gênero — um texto real do Wikisource",
+      loading: "Redação trabalhando",
+      classicLoading: "Obtendo do Wikisource",
+      vocabHeader: "Vocabulário",
+      byline: "Redação IA · O Diário",
+      classicByline: "Wikisource · Texto clássico",
+      classicNotice: "Texto autêntico — a dificuldade pode variar. O vocabulário e as perguntas são gerados por IA.",
+      comprehensionHeader: "Perguntas de compreensão",
+      discussionHeader: "Perguntas de discussão",
+      nextBtn: "Próximo artigo →",
+      nextClassicBtn: "Próximo texto →",
+      randomBtn: "↻ Aleatório",
+      noCategory: "Por favor selecione um tema primeiro.",
+      noGenre: "Por favor selecione um gênero primeiro.",
+      categories: {
+        Politik:"Política", Wirtschaft:"Economia", Wissenschaft:"Ciência",
+        Technologie:"Tecnologia", Gesellschaft:"Sociedade", Kultur:"Cultura",
+        Umwelt:"Meio ambiente", Gesundheit:"Saúde", Sport:"Esporte",
+        Schule:"Educação", Lifestyle:"Lifestyle", Kurioses:"Curiosidades"
+      },
+      genres: {
+        "Poesia brasileira":  "Poesia brasileira",
+        "Contos brasileiros": "Contos brasileiros",
+        "Romances brasileiros": "Romances brasileiros",
+        "Crônicas brasileiras": "Crônicas brasileiras",
+        "Contos portugueses": "Contos portugueses",
+        "Fábulas":            "Fábulas"
+      },
+      wikisub: "pt"
     },
-    categories:{
-      "Poetry":       {label:"Poetry",       cat:"Poetry"},
-      "Short stories":{label:"Short stories",cat:"Short stories"},
-      "Novels":       {label:"Novels",       cat:"Novels"},
-      "Essays":       {label:"Essays",       cat:"Essays"},
-      "Speeches":     {label:"Speeches",     cat:"Speeches"},
-      "Fairy tales":  {label:"Fairy tales",  cat:"Fairy tales"},
+    fr: {
+      name: "Français", flag: "🇫🇷", targetLanguage: "French", htmlLang: "fr",
+      titleHTML: 'Le <span>Quotidien</span>',
+      pageTitle: "Le Quotidien",
+      kicker: "Apprentissage des langues par IA",
+      sub: "Actualités pour apprenants de langues",
+      tabNews: "Actualités", tabClassic: "Textes classiques",
+      levelLabel: "Niveau de langue", topicLabel: "Thème", genreLabel: "Genre",
+      generateBtn: "Générer l'article", generatingBtn: "⏳ Génération …",
+      fetchBtn: "Trouver un texte", fetchingBtn: "⏳ Chargement …",
+      hint: "Choisissez le niveau et le thème — un nouvel article à chaque fois",
+      classicHint: "Choisissez un genre — un vrai texte de Wikisource",
+      loading: "La rédaction travaille",
+      classicLoading: "Récupération depuis Wikisource",
+      vocabHeader: "Vocabulaire",
+      byline: "Rédaction IA · Le Quotidien",
+      classicByline: "Wikisource · Texte classique",
+      classicNotice: "Texte authentique — la difficulté peut varier. Le vocabulaire et les questions sont générés par l'IA.",
+      comprehensionHeader: "Questions de compréhension",
+      discussionHeader: "Questions de discussion",
+      nextBtn: "Article suivant →",
+      nextClassicBtn: "Texte suivant →",
+      randomBtn: "↻ Aléatoire",
+      noCategory: "Veuillez d'abord sélectionner un thème.",
+      noGenre: "Veuillez d'abord sélectionner un genre.",
+      categories: {
+        Politik:"Politique", Wirtschaft:"Économie", Wissenschaft:"Sciences",
+        Technologie:"Technologie", Gesellschaft:"Société", Kultur:"Culture",
+        Umwelt:"Environnement", Gesundheit:"Santé", Sport:"Sport",
+        Schule:"Éducation", Lifestyle:"Lifestyle", Kurioses:"Insolite"
+      },
+      genres: {
+        "Poésie":   "Poésie",
+        "Contes":   "Contes",
+        "Nouvelles":"Nouvelles",
+        "Romans":   "Romans",
+        "Essais":   "Essais",
+        "Théâtre":  "Théâtre"
+      },
+      wikisub: "fr"
     }
-  },
-  nl: {
-    label:"Nederlands", flag:"🇳🇱",
-    wikisub:"nl",
-    ui:{
-      vocab:"Woordenschat", comprehension:"Begripssvragen",
-      discussion:"Discussievragen", byline:"Dagelijks nieuws",
-      classicByline:"Klassieke tekst", next:"Volgend artikel →"
+  };
+
+  // ── Category seeds — English, never shown to user ────────────
+  const CATEGORY_SEEDS = {
+    Politik:      "A current political decision or debate",
+    Wirtschaft:   "An economic development at a well-known company or market",
+    Wissenschaft: "A new scientific study or discovery at a university",
+    Technologie:  "A new technological application in everyday life",
+    Gesellschaft: "A current social trend or societal change",
+    Kultur:       "A cultural event or trend in art, literature or media",
+    Umwelt:       "An environmental or climate news story with a specific location or measurement",
+    Gesundheit:   "A new health study or medical recommendation for daily life",
+    Sport:        "A sports story with a record, tournament result or athlete profile",
+    Schule:       "A change or debate in the education system or school life",
+    Lifestyle:    "A trend in food, travel, fashion or everyday culture",
+    Kurioses:     "An unusual or surprising news story from around the world"
+  };
+
+  // ── Level instructions — English, never shown to user ────────
+  const LEVEL_INSTRUCTIONS = {
+    A1: `- Very simple sentences (subject + verb + object only).\n- Only the most common 1000 words in the target language.\n- Maximum 8 words per sentence.\n- No subjunctive, no passive voice.`,
+    A2: `- Simple sentences with occasional subordinate clauses.\n- Basic vocabulary, no technical jargon.\n- Maximum 12 words per sentence.\n- Minimal passive voice, no conditional mood.`,
+    B1: `- Clear, understandable sentences with subordinate clauses.\n- Everyday vocabulary with some technical terms explained in context.\n- Occasional passive voice permitted.`,
+    B2: `- Journalistic style, factual and clear.\n- Varied vocabulary with technical terms used in context.\n- Normal use of passive voice and subordinate clauses.`,
+    C1: `- Elevated journalistic style.\n- Complex sentence structures and rich vocabulary.\n- Use reported speech constructions.\n- Nominalisations and abstract concepts permitted.`,
+    C2: `- Sophisticated, literary-journalistic style.\n- Complex hypotaxis, parentheses, rhetorical devices.\n- Full command of all grammatical structures.\n- Nuanced, precise vocabulary at near-native level.`
+  };
+
+  // ── JSON schema (shared) ──────────────────────────────────────
+  const NEWS_SCHEMA = {
+    type: "object",
+    properties: {
+      domain: { type: "string" },
+      title:  { type: "string" },
+      vocab:  { type: "array", minItems: 6, maxItems: 6, items: { type: "object", properties: { word:{type:"string"}, definition:{type:"string"}, example:{type:"string"} }, required:["word","definition","example"] } },
+      paragraphs:    { type: "array", minItems: 4, maxItems: 4, items: { type: "string" } },
+      comprehension: { type: "array", minItems: 4, maxItems: 4, items: { type: "string" } },
+      discussion:    { type: "array", minItems: 4, maxItems: 4, items: { type: "string" } }
     },
-    categories:{
-      "Poëzie":    {label:"Poëzie",    cat:"Poëzie"},
-      "Literatuur":{label:"Literatuur",cat:"Literatuur"},
-      "Toneel":    {label:"Toneel",    cat:"Toneel"},
-      "Essays":    {label:"Essays",    cat:"Essays"},
-    }
+    required: ["domain","title","vocab","paragraphs","comprehension","discussion"]
+  };
+
+  const CLASSIC_SCHEMA = {
+    type: "object",
+    properties: {
+      vocab:         { type: "array", minItems: 6, maxItems: 6, items: { type: "object", properties: { word:{type:"string"}, definition:{type:"string"}, example:{type:"string"} }, required:["word","definition","example"] } },
+      comprehension: { type: "array", minItems: 4, maxItems: 4, items: { type: "string" } },
+      discussion:    { type: "array", minItems: 4, maxItems: 4, items: { type: "string" } }
+    },
+    required: ["vocab","comprehension","discussion"]
+  };
+
+  // ── News prompt builder (your exact original logic) ──────────
+  function buildNewsPrompt(category, level, lang) {
+    return `You are an editor for a language learning platform.
+
+Create an original, fictional but realistic-sounding daily news article at ${level} level (CEFR).
+
+Topic: ${CATEGORY_SEEDS[category]}
+
+Output language: Write the ENTIRE response — title, article body, all vocabulary entries, and all questions — in ${lang.targetLanguage}. Do not use any other language anywhere.
+
+Language level rules for ${level}:
+${LEVEL_INSTRUCTIONS[level]}
+
+General rules:
+- Neutral, factual, journalistic tone.
+- No opinions, no speculation, no source citations.
+- The article should sound current. Use words meaning "recently", "this week", "yesterday" or "today" in ${lang.targetLanguage}.
+- Mention at least one specific place, number or organisation.
+- Write exactly 4 paragraphs with 3 to 4 sentences each.
+- Create exactly 6 vocabulary entries appropriate for ${level} level.
+- Create exactly 4 comprehension questions appropriate for ${level} level.
+- Create exactly 4 open discussion questions appropriate for ${level} level.
+`;
   }
-};
 
-const NEWS_SEEDS = [
-  "a quirky or unusual recent news story (e.g. a truck stolen with unusual cargo, a record broken, an animal causing disruption)",
-  "a recent scientific discovery from a university or research institute, with a specific country and concrete detail",
-  "a current social or cultural trend among young people in a specific country",
-  "a recent political development or new law passed in a country",
-  "an economic update: a company announcement, market shift, or trade policy change",
-  "a technological development: a new product launch, AI application, or digital policy",
-  "an environmental or climate story with a concrete location and statistic",
-  "an unusual lifestyle or consumer trend currently spreading in a specific region",
-  "a recent international summit, diplomatic meeting, or geopolitical development",
-  "a health or medical story based on a recent study or government announcement",
-  "a story about social media trends, influencers, or the creator economy",
-  "a sports record, tournament result, or sports business deal from this week",
-  "an education policy change or youth behavior trend in a specific country",
-  "a space, astronomy, or physics discovery announced recently",
-  "a food, agriculture, or restaurant industry trend with a specific detail"
-];
+  // ── Classic prompt builder (English, never shown) ─────────────
+  function buildClassicPrompt(excerpt, lang) {
+    return `You are a language learning content editor. A student is reading the following authentic text in ${lang.targetLanguage}.
 
-// ── State ────────────────────────────────────────────────────
-let currentLang = "de";
-let currentMode = "news";
-let currentCategory = null;
-let usedSeeds = [];
-let lastWikisourceUrl = "";
-
-// ── Init ─────────────────────────────────────────────────────
-function init() {
-  // Build language pills
-  const langPills = document.getElementById("langPills");
-  Object.entries(LANGS).forEach(([code, cfg], i) => {
-    const btn = document.createElement("button");
-    btn.className = "pill" + (i === 0 ? " active" : "");
-    btn.textContent = cfg.flag + " " + cfg.label;
-    btn.onclick = () => setLang(code);
-    btn.id = "lang_" + code;
-    langPills.appendChild(btn);
-  });
-  buildCategoryChips();
-}
-
-function setLang(code) {
-  currentLang = code;
-  document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
-  document.getElementById("lang_" + code).classList.add("active");
-  buildCategoryChips();
-  hideArticle();
-}
-
-function buildCategoryChips() {
-  const cats = LANGS[currentLang].categories;
-  const row = document.getElementById("categoryChips");
-  row.innerHTML = "";
-  currentCategory = null;
-  // "Surprise me" chip
-  const surprise = document.createElement("button");
-  surprise.className = "chip active";
-  surprise.textContent = "🎲 Surprise me";
-  surprise.dataset.cat = "__random__";
-  surprise.onclick = () => selectChip(surprise);
-  row.appendChild(surprise);
-  currentCategory = "__random__";
-
-  Object.entries(cats).forEach(([key, cfg]) => {
-    const chip = document.createElement("button");
-    chip.className = "chip";
-    chip.textContent = cfg.label;
-    chip.dataset.cat = key;
-    chip.onclick = () => selectChip(chip);
-    row.appendChild(chip);
-  });
-}
-
-function selectChip(chip) {
-  document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
-  chip.classList.add("active");
-  currentCategory = chip.dataset.cat;
-}
-
-function switchMode(mode) {
-  currentMode = mode;
-  document.getElementById("tabNews").classList.toggle("active", mode === "news");
-  document.getElementById("tabClassic").classList.toggle("active", mode === "classic");
-  document.getElementById("newsControls").style.display = mode === "news" ? "block" : "none";
-  document.getElementById("classicControls").style.display = mode === "classic" ? "block" : "none";
-  hideArticle();
-}
-
-function handleNext() {
-  if (currentMode === "news") generateNews();
-  else generateClassic();
-}
-
-function hideArticle() {
-  document.getElementById("articleOuter").style.display = "none";
-  hideError();
-}
-
-// ── NEWS mode ─────────────────────────────────────────────────
-function pickSeed() {
-  if (usedSeeds.length >= NEWS_SEEDS.length) usedSeeds = [];
-  const available = NEWS_SEEDS.map((_,i)=>i).filter(i=>!usedSeeds.includes(i));
-  const idx = available[Math.floor(Math.random()*available.length)];
-  usedSeeds.push(idx);
-  return NEWS_SEEDS[idx];
-}
-
-async function generateNews() {
-  if (!checkKey()) return;
-  const lang = LANGS[currentLang];
-  const seed = pickSeed();
-
-  const prompt = `You are an editor for a language learning platform. Create an original but realistic-sounding "Daily News" article written entirely in ${lang.label}.
-
-Topic seed (invent a concrete, realistic event around this): ${seed}
-
-ARTICLE RULES:
-- Tone: neutral, factual, journalistic. No opinions, no speculation, no conclusions.
-- Feel current: use expressions like "this week", "recently", "today", "yesterday" naturally.
-- Include at least one concrete detail (location, number, organization).
-- No bullet points in the article text. No citations.
-- 4 paragraphs of 3-4 sentences each.
-- B2 level writing in ${lang.label}.
-
-Respond ONLY with valid JSON, no markdown, no explanation:
-{
-  "domain": "One short category word in ${lang.label} (e.g. Politik/Science/Économie etc.)",
-  "title": "Headline in ${lang.label}",
-  "vocab": [{"word":"...","definition":"Short definition in ${lang.label}","example":"Example sentence in ${lang.label} (not from article)"}],
-  "paragraphs": ["para1","para2","para3","para4"],
-  "comprehension": ["Q1?","Q2?","Q3?","Q4?"],
-  "discussion": ["Q1?","Q2?","Q3?","Q4?"]
-}
-Rules: vocab exactly 6 entries; 4 comprehension questions whose answers are in the text; 4 open discussion questions. Everything in ${lang.label}.`;
-
-  await callGeminiAndRender(prompt, "news", null, null);
-}
-
-// ── CLASSIC mode ──────────────────────────────────────────────
-async function generateClassic() {
-  if (!checkKey()) return;
-  const lang = LANGS[currentLang];
-  const cats = lang.categories;
-
-  // Pick category
-  let catKey = currentCategory;
-  if (catKey === "__random__") {
-    const keys = Object.keys(cats);
-    catKey = keys[Math.floor(Math.random()*keys.length)];
-  }
-  const catName = cats[catKey]?.cat || catKey;
-
-  setLoading(true);
-  hideError();
-  hideArticle();
-
-  // 1. Fetch random page from Wikisource category
-  let pageTitle, pageText, pageUrl;
-  try {
-    const result = await fetchWikisourcePage(lang.wikisub, catName);
-    pageTitle = result.title;
-    pageText = result.text;
-    pageUrl = result.url;
-  } catch(e) {
-    setLoading(false);
-    showError("Could not fetch from Wikisource: " + e.message + ". Try a different category.");
-    return;
-  }
-
-  // 2. Trim to ~400 words
-  const excerpt = trimToWords(pageText, 400);
-  if (excerpt.length < 80) {
-    setLoading(false);
-    showError("The fetched text was too short or empty. Try again — a different page will be selected.");
-    return;
-  }
-
-  lastWikisourceUrl = pageUrl;
-
-  // 3. Ask AI to generate vocab + questions around the real text
-  const prompt = `You are a language learning content editor. A student is reading this authentic text in ${lang.label}. Generate vocabulary and comprehension/discussion questions for it.
-
-ORIGINAL TEXT (do not modify it):
+ORIGINAL TEXT:
 """
 ${excerpt}
 """
 
-Your job: generate learning scaffolding in ${lang.label} around this text.
+Your task: generate learning scaffolding IN ${lang.targetLanguage} around this text.
 
-Respond ONLY with valid JSON, no markdown, no explanation:
-{
-  "vocab": [{"word":"...","definition":"Simple definition in ${lang.label}","example":"Short example sentence in ${lang.label} (not from the text above)"}],
-  "comprehension": ["Q1 in ${lang.label}?","Q2?","Q3?","Q4?"],
-  "discussion": ["Q1 in ${lang.label}?","Q2?","Q3?","Q4?"]
-}
 Rules:
-- vocab: exactly 6 words or phrases taken FROM the text that a B2 learner might find challenging. Definitions in ${lang.label}.
-- comprehension: 4 questions whose answers are found directly in the text.
-- discussion: 4 open personal/opinion questions inspired by the text's themes.
-- Everything in ${lang.label}.`;
+- vocab: exactly 6 words or phrases taken from the text that a learner might find challenging. Definitions must be in ${lang.targetLanguage} (not English). Example sentences must be NEW sentences not from the text above.
+- comprehension: exactly 4 questions whose answers are found directly in the text. Write in ${lang.targetLanguage}.
+- discussion: exactly 4 open personal/opinion questions inspired by the text's themes. Write in ${lang.targetLanguage}.
+- Everything in ${lang.targetLanguage} only.
+`;
+  }
 
-  await callGeminiAndRender(prompt, "classic", pageTitle, excerpt, pageUrl);
-}
+  // ── Mode switch ───────────────────────────────────────────────
+  function switchMode(mode) {
+    currentMode = mode;
+    document.getElementById("tabNews").classList.toggle("active", mode === "news");
+    document.getElementById("tabClassic").classList.toggle("active", mode === "classic");
 
-async function fetchWikisourcePage(sub, categoryName) {
-  const base = `https://${sub}.wikisource.org/w/api.php`;
-  const params = new URLSearchParams({
-    action:"query", list:"categorymembers",
-    cmtitle:`Kategorie:${categoryName}|Catégorie:${categoryName}|Categoría:${categoryName}|Categoria:${categoryName}|Category:${categoryName}|Categorie:${categoryName}`,
-    cmlimit:"50", cmtype:"page", cmnamespace:"0",
-    format:"json", origin:"*"
-  });
-  // Try the right prefix per language
-  const prefixMap = {de:"Kategorie",fr:"Catégorie",es:"Categoría",it:"Categoria",pt:"Categoria",en:"Category",nl:"Categorie"};
-  const prefix = prefixMap[sub] || "Category";
-  const p2 = new URLSearchParams({
-    action:"query", list:"categorymembers",
-    cmtitle:`${prefix}:${categoryName}`,
-    cmlimit:"50", cmtype:"page", cmnamespace:"0",
-    format:"json", origin:"*"
-  });
+    const lang = LANGUAGES[currentLang];
 
-  const res = await fetch(`${base}?${p2}`);
-  const data = await res.json();
-  const members = data?.query?.categorymembers || [];
-  if (!members.length) throw new Error(`No pages found in category "${categoryName}"`);
+    // Level row: only in news mode
+    document.getElementById("levelSection").style.display = mode === "news" ? "block" : "none";
 
-  // Pick random page from results
-  const page = members[Math.floor(Math.random()*members.length)];
-  const title = page.title;
-
-  // Fetch plain text of that page
-  const p3 = new URLSearchParams({
-    action:"query", titles:title,
-    prop:"extracts", exintro:"false", explaintext:"true",
-    format:"json", origin:"*"
-  });
-  const res2 = await fetch(`${base}?${p3}`);
-  const data2 = await res2.json();
-  const pages = data2?.query?.pages || {};
-  const pageData = Object.values(pages)[0];
-  const text = pageData?.extract || "";
-  const url = `https://${sub}.wikisource.org/wiki/${encodeURIComponent(title)}`;
-  return {title, text, url};
-}
-
-function trimToWords(text, maxWords) {
-  // Clean wikisource boilerplate noise
-  const cleaned = text
-    .replace(/\n{3,}/g,"\n\n")
-    .replace(/={2,}[^=]+=+/g,"")  // remove == headers ==
-    .replace(/\[\[.*?\]\]/g,"")    // remove wiki links
-    .replace(/\{\{.*?\}\}/g,"")    // remove templates
-    .trim();
-  const words = cleaned.split(/\s+/);
-  return words.slice(0, maxWords).join(" ");
-}
-
-// ── Core Gemini call ──────────────────────────────────────────
-async function callGeminiAndRender(prompt, mode, classicTitle, classicText, classicUrl) {
-  setLoading(true);
-  hideError();
-  hideArticle();
-
-  try {
-    const res = await fetch(GEMINI_URL(), {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({
-        contents:[{parts:[{text:prompt}]}],
-        generationConfig:{temperature:1.0, maxOutputTokens:1800}
-      })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    const clean = raw.replace(/```json|```/g,"").trim();
-    const parsed = JSON.parse(clean);
-
+    // Topic label + buttons change
     if (mode === "news") {
-      renderNews(parsed);
+      document.getElementById("uiTopicLabel").textContent = lang.topicLabel;
+      document.getElementById("uiHint").textContent       = lang.hint;
+      buildCategoryButtons(lang, selectedCategory);
     } else {
-      renderClassic(parsed, classicTitle, classicText, classicUrl);
+      document.getElementById("uiTopicLabel").textContent = lang.genreLabel;
+      document.getElementById("uiHint").textContent       = lang.classicHint;
+      buildGenreButtons(lang);
     }
-  } catch(e) {
-    showError("Error: " + e.message);
-  } finally {
-    setLoading(false);
+
+    // Reset article
+    document.getElementById("articleOuter").style.display = "none";
+    hideError(); hideDebug();
   }
-}
 
-// ── Renderers ─────────────────────────────────────────────────
-function renderNews(d) {
-  const lang = LANGS[currentLang];
-  const ui = lang.ui;
+  // ── Apply language ────────────────────────────────────────────
+  function applyLanguage(langCode) {
+    currentLang = langCode;
+    const lang  = LANGUAGES[langCode];
 
-  document.getElementById("tagRow").innerHTML =
-    `<span class="tag">B2</span>
-     <span class="tag tag-accent">${d.domain||"News"}</span>`;
+    document.documentElement.lang = lang.htmlLang;
+    document.title = lang.pageTitle;
 
-  document.getElementById("classicSourceBar").style.display = "none";
-  document.getElementById("classicNotice").style.display = "none";
-  document.getElementById("vocabEyebrow").textContent = ui.vocab;
-  document.getElementById("articleTitle").textContent = d.title || "";
-  document.getElementById("articleByline").textContent = ui.byline;
-  document.getElementById("comprehensionLabel").textContent = ui.comprehension;
-  document.getElementById("discussionLabel").textContent = ui.discussion;
-  document.getElementById("nextBtn").textContent = ui.next;
+    document.getElementById("uiTitle").innerHTML    = lang.titleHTML;
+    document.getElementById("uiKicker").textContent = lang.kicker;
+    document.getElementById("uiSub").textContent    = lang.sub;
 
-  renderShared(d, false);
-}
+    document.getElementById("uiTabNews").textContent    = lang.tabNews;
+    document.getElementById("uiTabClassic").textContent = lang.tabClassic;
 
-function renderClassic(d, title, text, url) {
-  const lang = LANGS[currentLang];
-  const ui = lang.ui;
+    document.getElementById("uiLevelLabel").textContent = lang.levelLabel;
+    document.getElementById("uiLoading").textContent    = lang.loading;
 
-  document.getElementById("tagRow").innerHTML =
-    `<span class="tag">Wikisource</span>
-     <span class="tag tag-source">${title||""}</span>`;
+    document.getElementById("uiVocabHeader").textContent        = lang.vocabHeader;
+    document.getElementById("uiComprehensionHeader").textContent = lang.comprehensionHeader;
+    document.getElementById("uiDiscussionHeader").textContent   = lang.discussionHeader;
 
-  const bar = document.getElementById("classicSourceBar");
-  bar.style.display = "flex";
-  document.getElementById("classicSourceTitle").textContent = title || "";
-  document.getElementById("classicSourceLink").href = url || "#";
+    document.querySelectorAll(".lang-btn").forEach(b => {
+      b.classList.toggle("active", b.dataset.lang === langCode);
+    });
 
-  document.getElementById("classicNotice").style.display = "block";
-  document.getElementById("vocabEyebrow").textContent = ui.vocab;
-  document.getElementById("articleTitle").textContent = title || "";
-  document.getElementById("articleByline").textContent = ui.classicByline;
-  document.getElementById("comprehensionLabel").textContent = ui.comprehension;
-  document.getElementById("discussionLabel").textContent = ui.discussion;
-  document.getElementById("nextBtn").textContent = ui.next;
+    // Rebuild the correct button set for current mode
+    switchMode(currentMode);
+  }
 
-  // Render the real text as body (no AI-generated paragraphs)
-  document.getElementById("articleBody").innerHTML =
-    text.split("\n\n").filter(p=>p.trim().length>0).map(p=>`<p>${p.trim()}</p>`).join("");
+  // ── Build sidebar ─────────────────────────────────────────────
+  function buildSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    Object.entries(LANGUAGES).forEach(([code, lang]) => {
+      const btn = document.createElement("button");
+      btn.className    = "lang-btn";
+      btn.dataset.lang = code;
+      btn.innerHTML    = `<span class="lang-flag">${lang.flag}</span><span class="lang-name">${lang.name}</span>`;
+      btn.addEventListener("click", () => applyLanguage(code));
+      sidebar.appendChild(btn);
+    });
+  }
 
-  renderShared(d, true);
-}
+  // ── Build news category buttons (your original logic) ─────────
+  function buildCategoryButtons(lang, preserveSelection) {
+    const row = document.getElementById("categoryRow");
+    row.innerHTML = "";
+    selectedCategory = null;
 
-function renderShared(d, isClassic) {
-  document.getElementById("vocabGrid").innerHTML = (d.vocab||[]).map(v=>
-    `<div class="vocab-card">
-      <div class="vocab-word">${v.word}</div>
-      <div class="vocab-def">${v.definition}</div>
-      <div class="vocab-ex">${v.example}</div>
-    </div>`).join("");
+    Object.keys(CATEGORY_SEEDS).forEach(key => {
+      const btn = document.createElement("button");
+      btn.className        = "pick-btn";
+      btn.dataset.category = key;
+      btn.textContent      = lang.categories[key] || key;
+      if (key === preserveSelection) { btn.classList.add("active"); selectedCategory = key; }
+      row.appendChild(btn);
+    });
 
-  if (!isClassic) {
+    const rnd = document.createElement("button");
+    rnd.className   = "pick-btn random-btn";
+    rnd.textContent = lang.randomBtn;
+    rnd.addEventListener("click", pickRandomCategory);
+    row.appendChild(rnd);
+
+    row.addEventListener("click", e => {
+      const btn = e.target.closest(".pick-btn");
+      if (!btn || btn.classList.contains("random-btn")) return;
+      row.querySelectorAll(".pick-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedCategory = btn.dataset.category;
+    });
+  }
+
+  // ── Build classic genre buttons ───────────────────────────────
+  function buildGenreButtons(lang) {
+    const row = document.getElementById("categoryRow");
+    row.innerHTML = "";
+    selectedCategory = null;
+
+    Object.entries(lang.genres).forEach(([wikicatKey, displayLabel]) => {
+      const btn = document.createElement("button");
+      btn.className        = "pick-btn";
+      btn.dataset.category = wikicatKey;   // exact Wikisource category name
+      btn.textContent      = displayLabel;
+      row.appendChild(btn);
+    });
+
+    const rnd = document.createElement("button");
+    rnd.className   = "pick-btn random-btn";
+    rnd.textContent = lang.randomBtn;
+    rnd.addEventListener("click", () => {
+      const keys = Object.keys(lang.genres);
+      const rndKey = keys[Math.floor(Math.random() * keys.length)];
+      row.querySelectorAll(".pick-btn").forEach(b => b.classList.remove("active"));
+      const t = row.querySelector(`[data-category="${CSS.escape(rndKey)}"]`);
+      if (t) t.classList.add("active");
+      selectedCategory = rndKey;
+    });
+    row.appendChild(rnd);
+
+    row.addEventListener("click", e => {
+      const btn = e.target.closest(".pick-btn");
+      if (!btn || btn.classList.contains("random-btn")) return;
+      row.querySelectorAll(".pick-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedCategory = btn.dataset.category;
+    });
+  }
+
+  // ── Random news category (your original) ─────────────────────
+  function pickRandomCategory() {
+    const keys   = Object.keys(CATEGORY_SEEDS);
+    const random = keys[Math.floor(Math.random() * keys.length)];
+    document.querySelectorAll("#categoryRow .pick-btn").forEach(b => b.classList.remove("active"));
+    const btn = document.querySelector(`#categoryRow [data-category="${random}"]`);
+    if (btn) btn.classList.add("active");
+    selectedCategory = random;
+  }
+
+  // ── Level buttons (your original) ────────────────────────────
+  document.getElementById("levelRow").addEventListener("click", e => {
+    const btn = e.target.closest(".pick-btn");
+    if (!btn) return;
+    document.querySelectorAll("#levelRow .pick-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    selectedLevel = btn.dataset.level;
+  });
+
+  // ── Route generate ────────────────────────────────────────────
+  function handleGenerate() {
+    if (currentMode === "news") generateNews();
+    else generateClassic();
+  }
+
+  // ── Generate news (your exact original logic) ─────────────────
+  async function generateNews() {
+    const lang = LANGUAGES[currentLang];
+    if (!selectedCategory) { showError(lang.noCategory); return; }
+
+    setLoading(true, lang.loading, lang.generatingBtn);
+    hideError(); hideDebug();
+    document.getElementById("articleOuter").style.display = "none";
+
+    try {
+      const requestBody = {
+        contents: [{ role:"user", parts:[{ text: buildNewsPrompt(selectedCategory, selectedLevel, lang) }] }],
+        generationConfig: {
+          temperature: 0.7, maxOutputTokens: 4096,
+          responseMimeType: "application/json",
+          responseSchema: NEWS_SCHEMA
+        }
+      };
+
+      const res = await fetch(PROXY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody)
+      });
+
+      const responseText = await res.text();
+      let data;
+      try { data = JSON.parse(responseText); }
+      catch(e) { showDebug("Raw HTTP response:\n\n" + responseText); throw new Error("API response was not valid JSON."); }
+
+      if (!res.ok) { showDebug(JSON.stringify(data,null,2)); throw new Error(data.error?.message || "HTTP " + res.status); }
+
+      const raw = (data.candidates?.[0]?.content?.parts || []).map(p => p.text||"").join("\n").trim();
+      if (!raw) { showDebug(JSON.stringify(data,null,2)); throw new Error("No text returned. Finish reason: " + (data.candidates?.[0]?.finishReason||"unknown")); }
+
+      let parsed;
+      try { parsed = JSON.parse(raw); }
+      catch(e) { showDebug("Raw model output:\n\n" + raw); throw new Error("Model returned text but not valid JSON."); }
+
+      normalizeNewsData(parsed);
+      renderNews(parsed, lang);
+    } catch(e) {
+      console.error(e);
+      showError("Error: " + e.message);
+    } finally {
+      setLoading(false, lang.loading, lang.generateBtn);
+    }
+  }
+
+  // ── Generate classic ──────────────────────────────────────────
+  async function generateClassic() {
+    const lang = LANGUAGES[currentLang];
+    if (!selectedCategory) { showError(lang.noGenre); return; }
+
+    setLoading(true, lang.classicLoading, lang.fetchingBtn);
+    hideError(); hideDebug();
+    document.getElementById("articleOuter").style.display = "none";
+
+    try {
+      // 1. Fetch a random page from Wikisource
+      const { title, text, url } = await fetchWikisourcePage(lang.wikisub, selectedCategory);
+
+      const excerpt = trimToWords(text, 380);
+      if (excerpt.trim().length < 80) {
+        throw new Error("The fetched text was too short or empty. Try another genre.");
+      }
+
+      // 2. Update loading label now that we have the text
+      document.getElementById("uiLoading").textContent = lang.loading;
+
+      // 3. Call proxy for vocab + questions
+      const requestBody = {
+        contents: [{ role:"user", parts:[{ text: buildClassicPrompt(excerpt, lang) }] }],
+        generationConfig: {
+          temperature: 0.7, maxOutputTokens: 2048,
+          responseMimeType: "application/json",
+          responseSchema: CLASSIC_SCHEMA
+        }
+      };
+
+      const res = await fetch(PROXY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody)
+      });
+
+      const responseText = await res.text();
+      let data;
+      try { data = JSON.parse(responseText); }
+      catch(e) { showDebug("Raw HTTP response:\n\n" + responseText); throw new Error("API response was not valid JSON."); }
+
+      if (!res.ok) { showDebug(JSON.stringify(data,null,2)); throw new Error(data.error?.message || "HTTP " + res.status); }
+
+      const raw = (data.candidates?.[0]?.content?.parts || []).map(p => p.text||"").join("\n").trim();
+      if (!raw) throw new Error("No text returned from AI.");
+
+      let parsed;
+      try { parsed = JSON.parse(raw); }
+      catch(e) { showDebug("Raw model output:\n\n" + raw); throw new Error("Model returned text but not valid JSON."); }
+
+      renderClassic(parsed, lang, title, excerpt, url);
+    } catch(e) {
+      console.error(e);
+      showError("Error: " + e.message);
+    } finally {
+      setLoading(false, lang.classicLoading, lang.fetchBtn);
+    }
+  }
+
+  // ── Wikisource fetch ──────────────────────────────────────────
+  async function fetchWikisourcePage(subdomain, categoryName) {
+    const base = `https://${subdomain}.wikisource.org/w/api.php`;
+
+    // Map subdomain to correct category prefix
+    const prefixMap = { de:"Kategorie", fr:"Catégorie", es:"Categoría", it:"Categoria", pt:"Categoria", en:"Category", nl:"Categorie" };
+    const prefix = prefixMap[subdomain] || "Category";
+
+    const catParams = new URLSearchParams({
+      action: "query", list: "categorymembers",
+      cmtitle: `${prefix}:${categoryName}`,
+      cmlimit: "50", cmtype: "page", cmnamespace: "0",
+      format: "json", origin: "*"
+    });
+
+    const catRes  = await fetch(`${base}?${catParams}`);
+    const catData = await catRes.json();
+    const members = catData?.query?.categorymembers || [];
+    if (!members.length) throw new Error(`No pages found in "${categoryName}" on ${subdomain}.wikisource.org`);
+
+    const page  = members[Math.floor(Math.random() * members.length)];
+    const title = page.title;
+
+    const textParams = new URLSearchParams({
+      action: "query", titles: title,
+      prop: "extracts", exintro: "false", explaintext: "true",
+      format: "json", origin: "*"
+    });
+
+    const textRes  = await fetch(`${base}?${textParams}`);
+    const textData = await textRes.json();
+    const pages    = textData?.query?.pages || {};
+    const pageData = Object.values(pages)[0];
+    const text     = pageData?.extract || "";
+    const url      = `https://${subdomain}.wikisource.org/wiki/${encodeURIComponent(title)}`;
+
+    return { title, text, url };
+  }
+
+  function trimToWords(text, maxWords) {
+    const cleaned = text
+      .replace(/={2,}[^=]+=+/g, "")   // strip == headers ==
+      .replace(/\[\[.*?\]\]/g, "")     // strip [[wiki links]]
+      .replace(/\{\{.*?\}\}/g, "")     // strip {{templates}}
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+    return cleaned.split(/\s+/).slice(0, maxWords).join(" ");
+  }
+
+  // ── Normalise (news) ──────────────────────────────────────────
+  function normalizeNewsData(d) {
+    if (!d || typeof d !== "object") throw new Error("Response is not a valid object.");
+    if (!d.domain)                   d.domain        = selectedCategory;
+    if (!d.title)                    d.title         = "—";
+    if (!Array.isArray(d.vocab))         d.vocab         = [];
+    if (!Array.isArray(d.paragraphs))    d.paragraphs    = [];
+    if (!Array.isArray(d.comprehension)) d.comprehension = [];
+    if (!Array.isArray(d.discussion))    d.discussion    = [];
+  }
+
+  // ── Render news ───────────────────────────────────────────────
+  function renderNews(d, lang) {
+    // Tags
+    document.getElementById("tagRow").innerHTML =
+      `<span class="tag">${escapeHtml(selectedLevel)}</span>
+       <span class="tag tag-domain">${escapeHtml(lang.categories[d.domain] || d.domain)}</span>`;
+
+    // Hide classic extras
+    document.getElementById("classicSourceBar").style.display = "none";
+    document.getElementById("classicNotice").style.display    = "none";
+
+    document.getElementById("uiVocabHeader").textContent        = lang.vocabHeader;
+    document.getElementById("articleTitle").textContent         = d.title;
+    document.getElementById("uiByline").textContent             = lang.byline;
+    document.getElementById("uiComprehensionHeader").textContent = lang.comprehensionHeader;
+    document.getElementById("uiDiscussionHeader").textContent   = lang.discussionHeader;
+    document.getElementById("uiNextBtn").textContent            = lang.nextBtn;
+
+    renderVocab(d.vocab);
     document.getElementById("articleBody").innerHTML =
-      (d.paragraphs||[]).map(p=>`<p>${p}</p>`).join("");
+      d.paragraphs.slice(0,4).map(p => `<p>${escapeHtml(p)}</p>`).join("");
+    renderQuestions(d.comprehension, d.discussion);
+
+    document.getElementById("articleOuter").style.display = "block";
+    document.getElementById("articleOuter").scrollIntoView({ behavior:"smooth", block:"start" });
   }
 
-  document.getElementById("comprehensionList").innerHTML =
-    (d.comprehension||[]).map((q,i)=>
-      `<div class="q-item"><span class="q-num">${i+1}</span><span class="q-text">${q}</span></div>`
-    ).join("");
+  // ── Render classic ────────────────────────────────────────────
+  function renderClassic(d, lang, title, excerpt, url) {
+    // Tags
+    document.getElementById("tagRow").innerHTML =
+      `<span class="tag">Wikisource</span>
+       <span class="tag tag-source">${escapeHtml(title)}</span>`;
 
-  document.getElementById("discussionList").innerHTML =
-    (d.discussion||[]).map((q,i)=>
-      `<div class="q-item"><span class="q-num">${i+1}</span><span class="q-text">${q}</span></div>`
-    ).join("");
+    // Source bar
+    const bar = document.getElementById("classicSourceBar");
+    bar.style.display = "flex";
+    document.getElementById("classicSourceTitle").textContent = title;
+    document.getElementById("classicSourceLink").href = url;
 
-  document.getElementById("articleOuter").style.display = "block";
-  document.getElementById("articleOuter").scrollIntoView({behavior:"smooth",block:"start"});
-}
+    // Notice
+    const notice = document.getElementById("classicNotice");
+    notice.style.display = "block";
+    notice.textContent   = lang.classicNotice;
 
-// ── Helpers ───────────────────────────────────────────────────
-function checkKey() {
-  if (GEMINI_API_KEY === "PASTE_YOUR_KEY_HERE") {
-    showError("Please paste your Gemini API key into the file first (see comment in the code).");
-    return false;
+    document.getElementById("uiVocabHeader").textContent        = lang.vocabHeader;
+    document.getElementById("articleTitle").textContent         = title;
+    document.getElementById("uiByline").textContent             = lang.classicByline;
+    document.getElementById("uiComprehensionHeader").textContent = lang.comprehensionHeader;
+    document.getElementById("uiDiscussionHeader").textContent   = lang.discussionHeader;
+    document.getElementById("uiNextBtn").textContent            = lang.nextClassicBtn;
+
+    renderVocab(d.vocab || []);
+    // Render the real Wikisource text
+    document.getElementById("articleBody").innerHTML =
+      excerpt.split("\n\n").filter(p => p.trim()).map(p => `<p>${escapeHtml(p.trim())}</p>`).join("");
+    renderQuestions(d.comprehension || [], d.discussion || []);
+
+    document.getElementById("articleOuter").style.display = "block";
+    document.getElementById("articleOuter").scrollIntoView({ behavior:"smooth", block:"start" });
   }
-  return true;
-}
-function setLoading(on) {
-  document.getElementById("loadingBox").style.display = on ? "block" : "none";
-  document.getElementById("newsBtn").disabled = on;
-  document.getElementById("classicBtn").disabled = on;
-  document.getElementById("nextBtn").disabled = on;
-}
-function showError(m){const e=document.getElementById("errorBox");e.textContent=m;e.style.display="block"}
-function hideError(){document.getElementById("errorBox").style.display="none"}
 
-init();
+  // ── Shared renderers ──────────────────────────────────────────
+  function renderVocab(vocab) {
+    document.getElementById("vocabGrid").innerHTML = vocab.slice(0,6).map(v => `
+      <div class="vocab-card">
+        <div class="vocab-word">${escapeHtml(v.word||"")}</div>
+        <div class="vocab-def">${escapeHtml(v.definition||"")}</div>
+        <div class="vocab-ex">${escapeHtml(v.example||"")}</div>
+      </div>`).join("");
+  }
+
+  function renderQuestions(comprehension, discussion) {
+    document.getElementById("comprehensionList").innerHTML =
+      comprehension.slice(0,4).map((q,i) => `
+        <div class="q-item"><span class="q-num">${i+1}</span><span class="q-text">${escapeHtml(q)}</span></div>`).join("");
+    document.getElementById("discussionList").innerHTML =
+      discussion.slice(0,4).map((q,i) => `
+        <div class="q-item"><span class="q-num">${i+1}</span><span class="q-text">${escapeHtml(q)}</span></div>`).join("");
+  }
+
+  function escapeHtml(v) {
+    return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+  }
+
+  // ── Loading / error helpers ───────────────────────────────────
+  function setLoading(on, loadingText, btnText) {
+    const lang = LANGUAGES[currentLang];
+    document.getElementById("loadingBox").style.display = on ? "block" : "none";
+    document.getElementById("uiLoading").textContent    = loadingText || lang.loading;
+    document.getElementById("genBtn").disabled    = on;
+    document.getElementById("genBtn").textContent = on ? (btnText || "⏳ …") : "↻ \u00A0" + (currentMode === "news" ? lang.generateBtn : lang.fetchBtn);
+  }
+
+  function showError(msg) { const b = document.getElementById("errorBox"); b.textContent = msg; b.style.display = "block"; }
+  function hideError()    { document.getElementById("errorBox").style.display = "none"; }
+  function showDebug(msg) { const b = document.getElementById("debugBox"); b.textContent = msg; b.style.display = "block"; }
+  function hideDebug()    { document.getElementById("debugBox").style.display = "none"; }
+
+  // ── Init ──────────────────────────────────────────────────────
+  buildSidebar();
+  applyLanguage("de");
+  pickRandomCategory();
 </script>
 </body>
 </html>
