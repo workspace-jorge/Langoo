@@ -927,7 +927,7 @@ Rules:
       // 1. Fetch a random page from Wikisource
       const { title, text, url } = await fetchWikisourcePage(lang.wikisub, selectedCategory);
 
-      const excerpt = trimToWords(text, 380);
+      const excerpt = trimToWords(text, 250);
       if (excerpt.trim().length < 80) {
         throw new Error("The fetched text was too short or empty. Try another genre.");
       }
@@ -939,7 +939,7 @@ Rules:
       const requestBody = {
         contents: [{ role:"user", parts:[{ text: buildClassicPrompt(excerpt, lang) }] }],
         generationConfig: {
-          temperature: 0.7, maxOutputTokens: 2048,
+          temperature: 0.7, maxOutputTokens: 4096,
           responseMimeType: "application/json",
           responseSchema: CLASSIC_SCHEMA
         }
