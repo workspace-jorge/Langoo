@@ -198,7 +198,46 @@
   }
   .next-btn:hover { background: var(--navy); color: white; }
 
-  @media (max-width: 640px) {
+  /* ── Browse / Generate sub-tabs ── */
+  .sub-tabs { display: flex; gap: 0; margin: 1.5rem 1.5rem 0; max-width: 700px; margin-left: auto; margin-right: auto; }
+  .sub-tab {
+    flex: 1; padding: 9px 0; text-align: center;
+    font-family: var(--sans); font-size: 13px; font-weight: 700;
+    background: white; border: 1.5px solid var(--rule);
+    cursor: pointer; color: var(--navy-muted); transition: all 0.15s;
+  }
+  .sub-tab:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+  .sub-tab:last-child  { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; border-left: none; }
+  .sub-tab.active { background: var(--navy); color: white; border-color: var(--navy); }
+  .sub-tab:hover:not(.active) { color: var(--navy); border-color: var(--navy-muted); }
+
+  /* ── History grid ── */
+  .history-outer { max-width: 780px; margin: 1.5rem auto 4rem; padding: 0 1.5rem; }
+  .history-filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.25rem; }
+  .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 14px; margin-bottom: 1.5rem; }
+  .history-card {
+    background: white; border: 1px solid var(--rule); border-radius: var(--radius);
+    padding: 14px 16px; cursor: pointer; transition: all 0.15s;
+    box-shadow: 0 1px 4px rgba(30,42,74,0.06);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .history-card:hover { border-color: var(--pink); box-shadow: 0 4px 12px rgba(232,99,140,0.15); transform: translateY(-2px); }
+  .history-card-title { font-family: var(--serif); font-size: 15px; font-weight: 600; color: var(--navy); line-height: 1.35; }
+  .history-card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .history-card-date { font-size: 11px; color: var(--navy-muted); font-weight: 600; }
+  .history-empty { text-align: center; padding: 3rem 1rem; color: var(--navy-muted); font-size: 14px; font-weight: 600; }
+  .history-empty span { display: block; font-size: 2rem; margin-bottom: 0.5rem; }
+  .pagination-row { display: flex; justify-content: center; gap: 10px; }
+  .page-btn {
+    padding: 8px 20px; background: transparent; color: var(--navy);
+    font-family: var(--sans); font-size: 13px; font-weight: 700;
+    border: 1.5px solid var(--rule); border-radius: 50px; cursor: pointer; transition: all 0.15s;
+  }
+  .page-btn:hover { border-color: var(--navy); }
+  .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .history-loading { text-align: center; padding: 2rem; color: var(--navy-muted); font-size: 13px; font-weight: 600; }
+
+  @media (max-width: 640px) {  @media (max-width: 640px) {
     .app-wrapper { flex-direction: column; }
     .sidebar { width: 100%; height: auto; position: static; border-right: none; flex-direction: row; padding: 0; overflow-x: auto; overflow-y: hidden; }
     .sidebar-label { display: none; }
@@ -229,7 +268,20 @@
       <button class="mode-tab"        id="tabCustom"    onclick="switchMode('custom')">✏️ <span id="uiTabCustom"></span></button>
     </div>
 
-    <div class="controls">
+    <!-- Sub-tabs: Generate / Browse -->
+    <div class="sub-tabs" id="subTabs">
+      <button class="sub-tab active" id="subGenerate" onclick="switchSubMode('generate')">✨ <span id="uiSubGenerate">Generate</span></button>
+      <button class="sub-tab"        id="subBrowse"   onclick="switchSubMode('browse')">📂 <span id="uiSubBrowse">Browse</span></button>
+    </div>
+
+    <!-- History panel -->
+    <div class="history-outer" id="historyOuter" style="display:none">
+      <div class="history-filter-row" id="historyFilterRow"></div>
+      <div id="historyGrid" class="history-grid"></div>
+      <div class="pagination-row" id="paginationRow"></div>
+    </div>
+
+    <div class="controls" id="controls-area">
       <!-- Level row: news + reads only -->
       <div id="levelSection">
         <span class="control-label" id="uiLevelLabel"></span>
@@ -530,31 +582,28 @@ const LEVEL_INSTRUCTIONS = {
   C2:`- Sophisticated literary-journalistic style.\n- Complex hypotaxis, rhetorical devices, near-native vocabulary.`
 };
 
-// ── Avoidance history — tracks recent titles per lang+mode+category ──
-const AVOID_MAX = 30; // max titles to remember per slot
+// ── Avoidance history — fetched from KV, cached in memory per session ──
+const avoidCache = {}; // key: lang::mode::category -> string[]
 
-function getAvoidKey(lang, mode, category) {
-  return "langum_avoid::" + lang + "::" + mode + "::" + category;
-}
-
-function getAvoidList(lang, mode, category) {
+async function getAvoidList(lang, mode, category) {
+  const cacheKey = lang + "::" + mode + "::" + category;
+  if (avoidCache[cacheKey]) return avoidCache[cacheKey];
   try {
-    const raw = localStorage.getItem(getAvoidKey(lang, mode, category));
-    return raw ? JSON.parse(raw) : [];
+    const res  = await fetch(PROXY_URL + "/titles?lang=" + encodeURIComponent(lang) + "&mode=" + encodeURIComponent(mode) + "&category=" + encodeURIComponent(category));
+    const data = await res.json();
+    avoidCache[cacheKey] = data.titles || [];
+    return avoidCache[cacheKey];
   } catch(e) { return []; }
 }
 
-function addToAvoidList(lang, mode, category, title) {
+function addToAvoidCache(lang, mode, category, title) {
   if (!title || title === "—") return;
-  try {
-    const key = getAvoidKey(lang, mode, category);
-    let list = getAvoidList(lang, mode, category);
-    // Skip if already present (deduplication)
-    if (list.some(t => t.toLowerCase() === title.toLowerCase())) return;
-    list.unshift(title);
-    if (list.length > AVOID_MAX) list = list.slice(0, AVOID_MAX);
-    localStorage.setItem(key, JSON.stringify(list));
-  } catch(e) {}
+  const cacheKey = lang + "::" + mode + "::" + category;
+  if (!avoidCache[cacheKey]) avoidCache[cacheKey] = [];
+  if (!avoidCache[cacheKey].some(t => t.toLowerCase() === title.toLowerCase())) {
+    avoidCache[cacheKey].unshift(title);
+    if (avoidCache[cacheKey].length > 30) avoidCache[cacheKey].pop();
+  }
 }
 
 const NEWS_SEEDS = {
@@ -582,8 +631,8 @@ const READS_SEEDS = {
   Mythologie:"a myth, legend, folklore story, or mythological concept from any culture — and what it reveals about human nature or society"
 };
 
-function buildNewsPrompt(category, level, lang) {
-  const avoidList = getAvoidList(lang.htmlLang, "news", category);
+async function buildNewsPrompt(category, level, lang) {
+  const avoidList = await getAvoidList(lang.htmlLang, "news", category);
   const avoidSection = avoidList.length > 0
     ? "\nIMPORTANT — Do NOT write about any of these topics that have already been covered. Choose something genuinely different:\n" + avoidList.map((t,i) => (i+1)+". "+t).join("\n") + "\n"
     : "";
@@ -599,8 +648,8 @@ Reply with ONLY valid JSON:
 {"domain":"...","title":"...","vocab":[{"word":"...","definition":"...","example":"..."}],"paragraphs":["...","...","...","..."],"comprehension":["...","...","...","..."],"discussion":["...","...","...","..."]}`;
 }
 
-function buildReadsPrompt(category, level, lang) {
-  const avoidList = getAvoidList(lang.htmlLang, "reads", category);
+async function buildReadsPrompt(category, level, lang) {
+  const avoidList = await getAvoidList(lang.htmlLang, "reads", category);
   const avoidSection = avoidList.length > 0
     ? "\nIMPORTANT — Do NOT write about any of these topics that have already been covered. Choose something genuinely different:\n" + avoidList.map((t,i) => (i+1)+". "+t).join("\n") + "\n"
     : "";
@@ -657,7 +706,13 @@ function switchMode(mode) {
   else if (mode === "wiki") buildPickButtons(lang.wikiCategories, lang);
   else if (mode === "lit") buildPickButtons(lang.litGenres, lang, false);
 
-  document.getElementById("articleOuter").style.display = "none";
+  // Reset to generate sub-tab when switching main mode
+  currentSubMode = "generate";
+  document.getElementById("subGenerate").classList.add("active");
+  document.getElementById("subBrowse").classList.remove("active");
+  document.getElementById("controls-area").style.display = "";
+  document.getElementById("historyOuter").style.display  = "none";
+  document.getElementById("articleOuter").style.display  = "none";
   hideError(); hideDebug();
 }
 
@@ -680,6 +735,7 @@ function applyLanguage(code) {
   document.getElementById("uiDiscussionHeader").textContent = lang.discussionHeader;
   document.getElementById("uiLoading").textContent = lang.loading;
   document.querySelectorAll(".lang-btn").forEach(b => b.classList.toggle("active", b.dataset.lang === code));
+  updateSubLabels();
   switchMode(currentMode);
 }
 
@@ -760,7 +816,7 @@ async function generateArticle(mode) {
   hideError(); hideDebug();
   document.getElementById("articleOuter").style.display = "none";
   try {
-    const prompt = mode === "news" ? buildNewsPrompt(selectedCategory, selectedLevel, lang) : buildReadsPrompt(selectedCategory, selectedLevel, lang);
+    const prompt = mode === "news" ? await buildNewsPrompt(selectedCategory, selectedLevel, lang) : await buildReadsPrompt(selectedCategory, selectedLevel, lang);
     const res = await fetch(PROXY_URL, { method:"POST", headers:{"Content-Type":"application/json"},
       body: JSON.stringify({ contents:[{role:"user",parts:[{text:prompt}]}], generationConfig:{temperature:1.1,maxOutputTokens:4096} }) });
     const raw = await parseProxy(res);
@@ -770,8 +826,9 @@ async function generateArticle(mode) {
     ["vocab","paragraphs","comprehension","discussion"].forEach(k => { if (!Array.isArray(d[k])) d[k]=[]; });
     const byline = mode === "news" ? lang.byline : lang.bylineReads;
     renderArticle(d, lang, selectedLevel, lang.newsCategories[d.domain] || lang.readsCategories[d.domain] || d.domain, byline, lang.nextBtn);
-    // Save title to avoidance list so it won't repeat
-    addToAvoidList(lang.htmlLang, mode, selectedCategory, d.title);
+    // Save to KV and update local cache
+    addToAvoidCache(lang.htmlLang, mode, selectedCategory, d.title);
+    saveArticleToKV(lang.htmlLang, mode, selectedCategory, d.title, selectedLevel, d);
   } catch(e) { showError("Error: "+e.message); }
   finally { setLoading(false, lang.loading, mode==="news"?lang.generateBtn:lang.generateBtn); }
 }
@@ -813,6 +870,7 @@ async function generateWikipedia() {
     const d = JSON.parse(raw);
 
     renderExternalText(d, lang, title, excerpt, wikiUrl, lang.sourceNoticeWiki, lang.sourceLink, "Wikipedia", lang.bylineWiki);
+    saveArticleToKV(currentLang, "wiki", selectedCategory, title, "", { ...d, paragraphs: excerpt.split("\n\n") });
   } catch(e) { showError("Error: "+e.message); }
   finally { setLoading(false, lang.loadingWiki, lang.fetchWikiBtn); }
 }
@@ -874,6 +932,7 @@ async function generateLiterature() {
     const d = JSON.parse(raw);
 
     renderExternalText(d, lang, title, excerpt, gutBookUrl, lang.sourceNoticeLit, lang.sourceLinkLit, "Gutenberg", lang.bylineLit);
+    saveArticleToKV(currentLang, "lit", selectedCategory, title, "", { ...d, paragraphs: excerpt.split("\n\n") });
   } catch(e) { showError("Error: "+e.message); }
   finally { setLoading(false, lang.loadingLit, lang.fetchLitBtn); }
 }
@@ -894,6 +953,7 @@ async function generateCustom() {
     const raw = await parseProxy(res);
     const d = JSON.parse(raw);
     renderExternalText(d, lang, lang.tabCustom, text, null, null, null, "Custom", lang.bylineCustom);
+    saveArticleToKV(currentLang, "custom", "custom", lang.tabCustom, "", { ...d, paragraphs: text.split("\n\n") });
   } catch(e) { showError("Error: "+e.message); }
   finally { setLoading(false, lang.loading, lang.analyzeBtn); }
 }
@@ -1005,9 +1065,191 @@ function hideError() { document.getElementById("errorBox").style.display="none";
 function showDebug(m) { const e=document.getElementById("debugBox"); e.textContent=m; e.style.display="block"; }
 function hideDebug() { document.getElementById("debugBox").style.display="none"; }
 
+// ── Sub-tab state ────────────────────────────────────────────────
+let currentSubMode = "generate"; // "generate" | "browse"
+let historyPage    = 0;
+let historyCursors = [null]; // cursors[i] = cursor to fetch page i
+let historyDone    = false;
+let historyFilter  = null; // null = all categories
+
+// ── Sub-tab UI strings (added to each language) ───────────────────
+const SUB_UI = {
+  de: { generate:"Generieren", browse:"Archiv", empty:"Noch keine Artikel gespeichert.", loadMore:"Mehr laden", prev:"← Zurück", filterAll:"Alle" },
+  en: { generate:"Generate",   browse:"Browse",  empty:"No articles saved yet.",         loadMore:"Load more", prev:"← Back",    filterAll:"All" },
+  fr: { generate:"Générer",    browse:"Parcourir",empty:"Aucun article sauvegardé.",     loadMore:"Plus",      prev:"← Retour",  filterAll:"Tous" },
+  es: { generate:"Generar",    browse:"Explorar", empty:"No hay artículos guardados.",   loadMore:"Más",       prev:"← Atrás",   filterAll:"Todos" },
+  it: { generate:"Genera",     browse:"Sfoglia",  empty:"Nessun articolo salvato.",      loadMore:"Altro",     prev:"← Indietro",filterAll:"Tutti" },
+  pt: { generate:"Gerar",      browse:"Explorar", empty:"Nenhum artigo salvo ainda.",    loadMore:"Mais",      prev:"← Voltar",  filterAll:"Todos" },
+  nl: { generate:"Genereren",  browse:"Bladeren", empty:"Nog geen artikelen opgeslagen.",loadMore:"Meer",      prev:"← Terug",   filterAll:"Alle" },
+};
+
+// ── Switch between Generate and Browse sub-tabs ───────────────────
+function switchSubMode(sub) {
+  currentSubMode = sub;
+  document.getElementById("subGenerate").classList.toggle("active", sub === "generate");
+  document.getElementById("subBrowse").classList.toggle("active", sub === "browse");
+  document.getElementById("controls-area").style.display   = sub === "generate" ? "" : "none";
+  document.getElementById("historyOuter").style.display    = sub === "browse"   ? "block" : "none";
+  document.getElementById("articleOuter").style.display    = "none";
+  hideError(); hideDebug();
+  if (sub === "browse") {
+    historyPage = 0; historyCursors = [null]; historyDone = false; historyFilter = null;
+    loadHistory();
+  }
+}
+
+// Update sub-tab labels when language changes
+function updateSubLabels() {
+  const ui = SUB_UI[currentLang] || SUB_UI.en;
+  document.getElementById("uiSubGenerate").textContent = ui.generate;
+  document.getElementById("uiSubBrowse").textContent   = ui.browse;
+}
+
+// ── Save article to KV (fire and forget) ─────────────────────────
+async function saveArticleToKV(lang, mode, category, title, level, data) {
+  try {
+    await fetch(PROXY_URL + "/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lang, mode, category, title, level, data }),
+    });
+  } catch(e) { /* silent fail */ }
+}
+
+// ── Load history page ─────────────────────────────────────────────
+async function loadHistory() {
+  const ui       = SUB_UI[currentLang] || SUB_UI.en;
+  const lang     = LANGUAGES[currentLang];
+  const grid     = document.getElementById("historyGrid");
+  const pageRow  = document.getElementById("paginationRow");
+  const filterRow= document.getElementById("historyFilterRow");
+
+  grid.innerHTML = `<div class="history-loading">…</div>`;
+  pageRow.innerHTML = "";
+
+  // Build category filter chips
+  filterRow.innerHTML = "";
+  const allChip = document.createElement("button");
+  allChip.className = "pick-btn" + (historyFilter === null ? " active" : "");
+  allChip.textContent = ui.filterAll;
+  allChip.onclick = () => { historyFilter = null; historyPage = 0; historyCursors = [null]; loadHistory(); };
+  filterRow.appendChild(allChip);
+
+  const cats = currentMode === "news" ? lang.newsCategories
+             : currentMode === "reads" ? lang.readsCategories
+             : currentMode === "wiki"  ? lang.wikiCategories
+             : currentMode === "lit"   ? lang.litGenres
+             : {};
+  Object.entries(cats).forEach(([key, label]) => {
+    const chip = document.createElement("button");
+    chip.className = "pick-btn" + (historyFilter === key ? " active" : "");
+    chip.textContent = label;
+    chip.onclick = () => { historyFilter = key; historyPage = 0; historyCursors = [null]; loadHistory(); };
+    filterRow.appendChild(chip);
+  });
+
+  // Fetch from KV
+  try {
+    const cursor   = historyCursors[historyPage] || "";
+    const category = historyFilter || "";
+    let fetchUrl   = PROXY_URL + "/history?lang=" + encodeURIComponent(currentLang)
+                   + "&mode=" + encodeURIComponent(currentMode)
+                   + "&limit=12";
+    if (category) fetchUrl += "&category=" + encodeURIComponent(category);
+    if (cursor)   fetchUrl += "&cursor="   + encodeURIComponent(cursor);
+
+    const res  = await fetch(fetchUrl);
+    const data = await res.json();
+    const items = data.items || [];
+    historyDone = data.done;
+    if (data.cursor && !historyCursors[historyPage + 1]) {
+      historyCursors[historyPage + 1] = data.cursor;
+    }
+
+    if (!items.length) {
+      grid.innerHTML = `<div class="history-empty"><span>📭</span>${ui.empty}</div>`;
+    } else {
+      grid.innerHTML = items.map(item => {
+        const catLabel = cats[item.category] || item.category || "";
+        const date     = item.savedAt ? new Date(item.savedAt).toLocaleDateString() : "";
+        const levelTag = item.level ? "<span class='tag' style='font-size:9px;padding:2px 7px'>" + escapeHtml(item.level) + "</span>" : "";
+        const catTag   = catLabel    ? "<span class='tag tag-domain' style='font-size:9px;padding:2px 7px'>" + escapeHtml(catLabel) + "</span>" : "";
+        return "<div class='history-card' data-key='" + escapeHtml(item.key) + "'>"
+          + "<div class='history-card-title'>" + escapeHtml(item.title || "—") + "</div>"
+          + "<div class='history-card-meta'>" + levelTag + catTag + "</div>"
+          + "<div class='history-card-date'>" + date + "</div>"
+          + "</div>";
+      }).join("");
+      // Use event delegation so no inline onclick with escaping issues
+      grid.addEventListener("click", function handler(e) {
+        const card = e.target.closest(".history-card");
+        if (card && card.dataset.key) {
+          grid.removeEventListener("click", handler);
+          loadSavedArticle(card.dataset.key);
+        }
+      });
+    }
+
+    // Pagination buttons
+    const prevBtn = document.createElement("button");
+    prevBtn.className = "page-btn";
+    prevBtn.textContent = ui.prev;
+    prevBtn.disabled = historyPage === 0;
+    prevBtn.onclick = () => { historyPage--; loadHistory(); };
+
+    const nextBtn = document.createElement("button");
+    nextBtn.className = "page-btn";
+    nextBtn.textContent = ui.loadMore + " →";
+    nextBtn.disabled = historyDone && !historyCursors[historyPage + 1];
+    nextBtn.onclick = () => { historyPage++; loadHistory(); };
+
+    pageRow.appendChild(prevBtn);
+    pageRow.appendChild(nextBtn);
+
+  } catch(e) {
+    grid.innerHTML = `<div class="history-empty"><span>⚠️</span>Could not load history: ${e.message}</div>`;
+  }
+}
+
+// ── Load a saved article by KV key ───────────────────────────────
+async function loadSavedArticle(key) {
+  const lang = LANGUAGES[currentLang];
+  try {
+    const res  = await fetch(PROXY_URL + "/article?key=" + encodeURIComponent(key));
+    const saved = await res.json();
+    if (saved.error) throw new Error(saved.error);
+    const d    = saved.data;
+    const mode = saved.mode;
+
+    // Render based on mode
+    if (mode === "news" || mode === "reads") {
+      const domainLabel = lang.newsCategories[d.domain] || lang.readsCategories[d.domain] || d.domain || saved.category;
+      const byline      = mode === "news" ? lang.byline : lang.bylineReads;
+      renderArticle(d, lang, saved.level || "—", domainLabel, byline, lang.nextBtn);
+    } else {
+      // wiki, lit, custom — stored with title as source title
+      const noticeMap  = { wiki: lang.sourceNoticeWiki, lit: lang.sourceNoticeLit, custom: null };
+      const linkMap    = { wiki: lang.sourceLink, lit: lang.sourceLinkLit, custom: null };
+      const tagMap     = { wiki: "Wikipedia", lit: "Gutenberg", custom: "Custom" };
+      const bylineMap  = { wiki: lang.bylineWiki, lit: lang.bylineLit, custom: lang.bylineCustom };
+      // Reconstruct text from paragraphs if available
+      const bodyText   = (d.paragraphs || []).join("\n\n") || saved.title;
+      renderExternalText(d, lang, saved.title, bodyText, null, noticeMap[mode]||null, linkMap[mode]||null, tagMap[mode]||"", bylineMap[mode]||"");
+    }
+
+    // Switch to generate sub-tab view so article is visible
+    document.getElementById("historyOuter").style.display = "none";
+    document.getElementById("articleOuter").style.display = "block";
+    document.getElementById("articleOuter").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch(e) {
+    showError("Could not load article: " + e.message);
+  }
+}
+
 // ── Init ─────────────────────────────────────────────────────────
 buildSidebar();
 applyLanguage("de");
+updateSubLabels();
 // Pre-select a random news category
 const newsKeys = Object.keys(LANGUAGES.de.newsCategories);
 selectCat(document.getElementById("categoryRow"), newsKeys[Math.floor(Math.random()*newsKeys.length)]);
