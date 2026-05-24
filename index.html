@@ -979,19 +979,21 @@ Rules:
     const prefixMap = { de:"Kategorie", fr:"Cat\u00e9gorie", es:"Categor\u00eda", it:"Categoria", pt:"Categoria", en:"Category", nl:"Categorie" };
     const prefix = prefixMap[subdomain] || "Category";
 
-    // ── Step 1: get category members via worker proxy ─────────────
-    const catUrl = PROXY_URL + "/wikisource-cat?sub=" + encodeURIComponent(subdomain) + "&cat=" + encodeURIComponent(categoryName) + "&prefix=" + encodeURIComponent(prefix);
-    const catRes = await fetch(catUrl);
+    // Step 1: get category members via worker
+    const catUrl = PROXY_URL + "/wikisource-cat?sub=" + encodeURIComponent(subdomain)
+                 + "&cat=" + encodeURIComponent(categoryName)
+                 + "&prefix=" + encodeURIComponent(prefix);
+    const catRes  = await fetch(catUrl);
     const catData = await catRes.json();
-
     const members = catData?.query?.categorymembers || [];
+
     if (!members.length) {
       showDebug("Category response:\n" + JSON.stringify(catData, null, 2));
       throw new Error("No pages found in \"" + prefix + ":" + categoryName + "\" on " + subdomain + ".wikisource.org");
     }
 
-    // ── Step 2: shuffle, try up to 8 pages via worker proxy ───────
-    const shuffled = [...members].sort(() => Math.random() - 0.5);
+    // Step 2: shuffle, try up to 8 pages — fetch parsed HTML via worker
+    const shuffled  = [...members].sort(() => Math.random() - 0.5);
     const debugLines = ["Found " + members.length + " pages in \"" + categoryName + "\". Trying up to 8..."];
 
     for (let i = 0; i < Math.min(8, shuffled.length); i++) {
@@ -1000,17 +1002,17 @@ Rules:
       debugLines.push("\n[" + (i+1) + "] \"" + title + "\"");
 
       try {
-        const wikisourceUrl = PROXY_URL + "/wikisource?sub=" + encodeURIComponent(subdomain) + "&title=" + encodeURIComponent(title);
-        const wsRes  = await fetch(wikisourceUrl);
+        const wsUrl  = PROXY_URL + "/wikisource?sub=" + encodeURIComponent(subdomain) + "&title=" + encodeURIComponent(title);
+        const wsRes  = await fetch(wsUrl);
         const wsData = await wsRes.json();
 
-        if (!wsData.wikitext) {
-          debugLines.push("  -> empty wikitext, skipping");
+        if (!wsData.html) {
+          debugLines.push("  -> no HTML returned, skipping");
           continue;
         }
 
-        debugLines.push("  -> " + wsData.wikitext.length + " chars of wikitext");
-        const cleaned   = cleanWikitext(wsData.wikitext);
+        debugLines.push("  -> " + wsData.html.length + " chars of HTML");
+        const cleaned   = cleanHTML(wsData.html);
         const wordCount = cleaned.split(/\s+/).filter(w => w.length > 0).length;
         debugLines.push("  -> " + wordCount + " words after cleaning");
 
@@ -1029,20 +1031,33 @@ Rules:
     throw new Error("Could not find a page with enough text in \"" + categoryName + "\". Try again or pick a different genre.");
   }
 
-  function cleanWikitext(raw) {
-    return raw
-      .replace(/<ref[^>]*>[\s\S]*?<\/ref>/gi, "")
-      .replace(/<ref[^>]*\/>/gi, "")
+  function cleanHTML(html) {
+    // Remove entire unwanted block elements before stripping tags
+    const cleaned = html
+      // Remove navigation boxes, info tables, edit links, references sections
+      .replace(/<table[\s\S]*?<\/table>/gi, "")
+      .replace(/<div[^>]*class="[^"]*(?:navigation|noprint|mw-editsection|reflist|reference|toc|thumb|ws-header|ws-footer|footer)[^"]*"[^>]*>[\s\S]*?<\/div>/gi, "")
+      .replace(/<span[^>]*class="[^"]*mw-editsection[^"]*"[^>]*>[\s\S]*?<\/span>/gi, "")
+      .replace(/<sup[^>]*>[\s\S]*?<\/sup>/gi, "")
+      // Convert block elements to newlines so paragraphs are preserved
+      .replace(/<\/p>/gi, "\n\n")
+      .replace(/<\/div>/gi, "\n")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/h[1-6]>/gi, "\n\n")
+      // Strip all remaining tags
       .replace(/<[^>]+>/g, "")
-      .replace(/\{\{[^{}]*\}\}/g, "").replace(/\{\{[^{}]*\}\}/g, "")
-      .replace(/\[\[(?:File|Image|Datei|Fichier|Archivo|Immagine|Bestand):[^\]]*\]\]/gi, "")
-      .replace(/\[\[(?:[^|\]]*\|)?([^\]]+)\]\]/g, "$1")
-      .replace(/\[https?:\/\/[^\]]*\]/g, "")
-      .replace(/={2,}[^=\n]+=+/g, "")
-      .replace(/\'\'{2,3}/g, "")
-      .replace(/^[\s|!{}\[\]]+$/gm, "")
+      // Decode common HTML entities
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'")
+      .replace(/&nbsp;/g, " ")
+      // Collapse whitespace
       .replace(/\n{3,}/g, "\n\n")
+      .replace(/[ \t]{2,}/g, " ")
       .trim();
+    return cleaned;
   }
 
   function trimToWords(text, maxWords) {
