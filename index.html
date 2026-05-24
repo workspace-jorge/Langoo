@@ -585,11 +585,7 @@ const READS_SEEDS = {
 function buildNewsPrompt(category, level, lang) {
   const avoidList = getAvoidList(lang.htmlLang, "news", category);
   const avoidSection = avoidList.length > 0
-    ? `
-IMPORTANT — Do NOT write about any of these topics that have already been covered. Choose something genuinely different:
-${avoidList.map((t,i) => `${i+1}. ${t}`).join("
-")}
-`
+    ? "\nIMPORTANT — Do NOT write about any of these topics that have already been covered. Choose something genuinely different:\n" + avoidList.map((t,i) => (i+1)+". "+t).join("\n") + "\n"
     : "";
   return `You are an editor for a language learning platform.
 Create a fictional but realistic-sounding daily news article at ${level} level (CEFR).
@@ -606,11 +602,7 @@ Reply with ONLY valid JSON:
 function buildReadsPrompt(category, level, lang) {
   const avoidList = getAvoidList(lang.htmlLang, "reads", category);
   const avoidSection = avoidList.length > 0
-    ? `
-IMPORTANT — Do NOT write about any of these topics that have already been covered. Choose something genuinely different:
-${avoidList.map((t,i) => `${i+1}. ${t}`).join("
-")}
-`
+    ? "\nIMPORTANT — Do NOT write about any of these topics that have already been covered. Choose something genuinely different:\n" + avoidList.map((t,i) => (i+1)+". "+t).join("\n") + "\n"
     : "";
   return `You are an editor for a language learning platform focused on enriching non-fiction reads.
 Create an engaging, well-researched article at ${level} level (CEFR) on the following theme.
