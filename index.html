@@ -530,35 +530,72 @@ const LEVEL_INSTRUCTIONS = {
   C2:`- Sophisticated literary-journalistic style.\n- Complex hypotaxis, rhetorical devices, near-native vocabulary.`
 };
 
+// ── Avoidance history — tracks recent titles per lang+mode+category ──
+const AVOID_MAX = 30; // max titles to remember per slot
+
+function getAvoidKey(lang, mode, category) {
+  return "langum_avoid::" + lang + "::" + mode + "::" + category;
+}
+
+function getAvoidList(lang, mode, category) {
+  try {
+    const raw = localStorage.getItem(getAvoidKey(lang, mode, category));
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) { return []; }
+}
+
+function addToAvoidList(lang, mode, category, title) {
+  if (!title || title === "—") return;
+  try {
+    const key = getAvoidKey(lang, mode, category);
+    let list = getAvoidList(lang, mode, category);
+    // Skip if already present (deduplication)
+    if (list.some(t => t.toLowerCase() === title.toLowerCase())) return;
+    list.unshift(title);
+    if (list.length > AVOID_MAX) list = list.slice(0, AVOID_MAX);
+    localStorage.setItem(key, JSON.stringify(list));
+  } catch(e) {}
+}
+
 const NEWS_SEEDS = {
-  Politik:"A current political decision, election, or political debate",
-  Wirtschaft:"An economic development at a well-known company or market",
-  Wissenschaft:"A new scientific study or discovery at a university or research institute",
-  Technologie:"A new technological application or digital development in everyday life",
-  Gesellschaft:"A current social trend or societal change",
-  Kultur:"A cultural event or trend in art, literature, or media",
-  Umwelt:"An environmental or climate news story with a specific location or measurement",
-  Gesundheit:"A new health study or medical recommendation",
-  Sport:"A sports story: record, tournament result, or athlete profile",
-  Schule:"A change or debate in the education system",
-  Lifestyle:"A trend in food, travel, fashion, or everyday culture",
-  Kurioses:"An unusual or surprising news story from around the world"
+  Politik:"a current political story (election, law, protest, diplomatic dispute, corruption, policy debate, or political figure)",
+  Wirtschaft:"an economic story (startup, market shift, company news, strike, trade, bankruptcy, economic trend, or consumer behaviour)",
+  Wissenschaft:"a scientific discovery or study (any field: biology, physics, medicine, archaeology, climate, materials, neuroscience, etc.)",
+  Technologie:"a technology story (app, device, AI, robotics, digital policy, cybersecurity, biotech, or tech in everyday life)",
+  Gesellschaft:"a social or cultural trend (generational change, community, urban life, family, work, identity, values, or social movement)",
+  Kultur:"a cultural story (music, film, literature, visual art, architecture, fashion, food culture, heritage, or cultural conflict)",
+  Umwelt:"an environmental or climate story (wildlife, pollution, energy, extreme weather, conservation, or environmental policy)",
+  Gesundheit:"a health or medical story (study, treatment, public health, mental health, nutrition, sport science, or medical technology)",
+  Sport:"a sports story (any sport — result, record, athlete, club, scandal, business, or a sport gaining or losing popularity)",
+  Schule:"an education story (schools, universities, teachers, students, curriculum, technology in education, or learning trends)",
+  Lifestyle:"a lifestyle or consumer trend (food, travel, fashion, home, relationships, leisure, money habits, or urban culture)",
+  Kurioses:"a quirky, unusual, or surprising real-world story that is mildly amusing or unexpected"
 };
 
 const READS_SEEDS = {
-  Philosophie:"A philosophical concept, thinker, or thought experiment (e.g. Stoicism, the trolley problem, existentialism)",
-  Geschichte:"A fascinating or little-known historical event, curiosity, or figure related to the target language's culture or world history",
-  Gesellschaft:"A current or recurring question about how societies function, social norms, or human behavior",
-  Wissenschaft:"A scientific discovery, theory, or phenomenon explained in an engaging, accessible way",
-  Psychologie:"A psychological concept, bias, or study about human behavior and the mind",
-  Kunst:"An artistic movement, architectural wonder, or cultural artifact and its significance",
-  Mythologie:"A myth, legend, or folklore story and what it reveals about the culture it comes from"
+  Philosophie:"a philosophical idea, thinker, concept, thought experiment, or ethical dilemma from any tradition or era",
+  Geschichte:"a fascinating, surprising, or little-known historical event, figure, place, or cultural practice from any period or region",
+  Gesellschaft:"a question about how modern societies work — social norms, institutions, inequality, community, or human behaviour at scale",
+  Wissenschaft:"a scientific concept, discovery, or phenomenon — explained accessibly and chosen for its surprising or counterintuitive nature",
+  Psychologie:"a psychological concept, cognitive bias, study, or insight about how human minds and behaviour actually work",
+  Kunst:"an art movement, artistic technique, specific work, creative figure, or the relationship between art and society",
+  Mythologie:"a myth, legend, folklore story, or mythological concept from any culture — and what it reveals about human nature or society"
 };
 
 function buildNewsPrompt(category, level, lang) {
+  const avoidList = getAvoidList(lang.htmlLang, "news", category);
+  const avoidSection = avoidList.length > 0
+    ? `
+IMPORTANT — Do NOT write about any of these topics that have already been covered. Choose something genuinely different:
+${avoidList.map((t,i) => `${i+1}. ${t}`).join("
+")}
+`
+    : "";
   return `You are an editor for a language learning platform.
 Create a fictional but realistic-sounding daily news article at ${level} level (CEFR).
-Topic: ${NEWS_SEEDS[category]}
+Category: ${NEWS_SEEDS[category]}
+${avoidSection}
+Be specific and inventive — pick an unexpected angle, a concrete location, a surprising statistic, or an unusual character. Avoid generic or predictable takes on the category.
 Output language: Write the ENTIRE response in ${lang.targetLanguage} only.
 Level rules for ${level}: ${LEVEL_INSTRUCTIONS[level]}
 Rules: neutral journalistic tone; no opinions; sounds current (use "recently", "this week", etc.); mention at least one specific place/number/organisation; exactly 4 paragraphs of 3-4 sentences; 6 vocabulary entries; 4 comprehension questions; 4 discussion questions.
@@ -567,9 +604,19 @@ Reply with ONLY valid JSON:
 }
 
 function buildReadsPrompt(category, level, lang) {
+  const avoidList = getAvoidList(lang.htmlLang, "reads", category);
+  const avoidSection = avoidList.length > 0
+    ? `
+IMPORTANT — Do NOT write about any of these topics that have already been covered. Choose something genuinely different:
+${avoidList.map((t,i) => `${i+1}. ${t}`).join("
+")}
+`
+    : "";
   return `You are an editor for a language learning platform focused on enriching non-fiction reads.
 Create an engaging, well-researched article at ${level} level (CEFR) on the following theme.
-Topic: ${READS_SEEDS[category]}
+Category: ${READS_SEEDS[category]}
+${avoidSection}
+Be inventive — pick a specific, unexpected, or underexplored angle within this category rather than the most obvious one.
 Output language: Write the ENTIRE response in ${lang.targetLanguage} only.
 Level rules for ${level}: ${LEVEL_INSTRUCTIONS[level]}
 Rules: thoughtful, essay-like tone; factual and informative; no bullet points; include at least one concrete detail (name, date, place, study); exactly 4 paragraphs of 4-5 sentences; 6 vocabulary entries; 4 comprehension questions; 4 open discussion questions.
@@ -723,7 +770,7 @@ async function generateArticle(mode) {
   try {
     const prompt = mode === "news" ? buildNewsPrompt(selectedCategory, selectedLevel, lang) : buildReadsPrompt(selectedCategory, selectedLevel, lang);
     const res = await fetch(PROXY_URL, { method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ contents:[{role:"user",parts:[{text:prompt}]}], generationConfig:{temperature:0.8,maxOutputTokens:4096} }) });
+      body: JSON.stringify({ contents:[{role:"user",parts:[{text:prompt}]}], generationConfig:{temperature:1.1,maxOutputTokens:4096} }) });
     const raw = await parseProxy(res);
     const d = JSON.parse(raw);
     d.domain = d.domain || selectedCategory;
@@ -731,6 +778,8 @@ async function generateArticle(mode) {
     ["vocab","paragraphs","comprehension","discussion"].forEach(k => { if (!Array.isArray(d[k])) d[k]=[]; });
     const byline = mode === "news" ? lang.byline : lang.bylineReads;
     renderArticle(d, lang, selectedLevel, lang.newsCategories[d.domain] || lang.readsCategories[d.domain] || d.domain, byline, lang.nextBtn);
+    // Save title to avoidance list so it won't repeat
+    addToAvoidList(lang.htmlLang, mode, selectedCategory, d.title);
   } catch(e) { showError("Error: "+e.message); }
   finally { setLoading(false, lang.loading, mode==="news"?lang.generateBtn:lang.generateBtn); }
 }
