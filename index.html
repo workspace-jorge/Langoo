@@ -976,86 +976,78 @@ Rules:
 
   // ── Wikisource fetch ──────────────────────────────────────────
   async function fetchWikisourcePage(subdomain, categoryName) {
-    const base = `https://${subdomain}.wikisource.org/w/api.php`;
-    const prefixMap = { de:"Kategorie", fr:"Catégorie", es:"Categoría", it:"Categoria", pt:"Categoria", en:"Category", nl:"Categorie" };
+    const prefixMap = { de:"Kategorie", fr:"Cat\u00e9gorie", es:"Categor\u00eda", it:"Categoria", pt:"Categoria", en:"Category", nl:"Categorie" };
     const prefix = prefixMap[subdomain] || "Category";
 
-    // Fetch up to 50 members from the category
-    const catParams = new URLSearchParams({
-      action: "query", list: "categorymembers",
-      cmtitle: `${prefix}:${categoryName}`,
-      cmlimit: "50", cmtype: "page", cmnamespace: "0",
-      format: "json", origin: "*"
-    });
-
-    const catRes  = await fetch(`${base}?${catParams}`);
+    // ── Step 1: get category members via worker proxy ─────────────
+    const catUrl = PROXY_URL + "/wikisource-cat?sub=" + encodeURIComponent(subdomain) + "&cat=" + encodeURIComponent(categoryName) + "&prefix=" + encodeURIComponent(prefix);
+    const catRes = await fetch(catUrl);
     const catData = await catRes.json();
+
     const members = catData?.query?.categorymembers || [];
-    if (!members.length) throw new Error(`No pages found in "${categoryName}" on ${subdomain}.wikisource.org`);
+    if (!members.length) {
+      showDebug("Category response:\n" + JSON.stringify(catData, null, 2));
+      throw new Error("No pages found in \"" + prefix + ":" + categoryName + "\" on " + subdomain + ".wikisource.org");
+    }
 
-    // Shuffle so we try different pages each time
+    // ── Step 2: shuffle, try up to 8 pages via worker proxy ───────
     const shuffled = [...members].sort(() => Math.random() - 0.5);
+    const debugLines = ["Found " + members.length + " pages in \"" + categoryName + "\". Trying up to 8..."];
 
-    // Try up to 5 pages until we get one with enough text
-    for (let i = 0; i < Math.min(5, shuffled.length); i++) {
+    for (let i = 0; i < Math.min(8, shuffled.length); i++) {
       const title = shuffled[i].title;
-      const url   = `https://${subdomain}.wikisource.org/wiki/${encodeURIComponent(title)}`;
+      const url   = "https://" + subdomain + ".wikisource.org/wiki/" + encodeURIComponent(title);
+      debugLines.push("\n[" + (i+1) + "] \"" + title + "\"");
 
       try {
-        // Use action=parse&prop=wikitext — works on Wikisource unlike TextExtracts
-        const parseParams = new URLSearchParams({
-          action: "parse", page: title,
-          prop: "wikitext", format: "json", origin: "*"
-        });
+        const wikisourceUrl = PROXY_URL + "/wikisource?sub=" + encodeURIComponent(subdomain) + "&title=" + encodeURIComponent(title);
+        const wsRes  = await fetch(wikisourceUrl);
+        const wsData = await wsRes.json();
 
-        const parseRes  = await fetch(`${base}?${parseParams}`);
-        const parseData = await parseRes.json();
-        const wikitext  = parseData?.parse?.wikitext?.["*"] || "";
+        if (!wsData.wikitext) {
+          debugLines.push("  -> empty wikitext, skipping");
+          continue;
+        }
 
-        const cleaned = cleanWikitext(wikitext);
-        if (cleaned.split(/\s+/).length >= 80) {
+        debugLines.push("  -> " + wsData.wikitext.length + " chars of wikitext");
+        const cleaned   = cleanWikitext(wsData.wikitext);
+        const wordCount = cleaned.split(/\s+/).filter(w => w.length > 0).length;
+        debugLines.push("  -> " + wordCount + " words after cleaning");
+
+        if (wordCount >= 80) {
+          showDebug(debugLines.join("\n"));
           return { title, text: cleaned, url };
         }
+        debugLines.push("  -> too short, skipping");
       } catch(e) {
-        // Skip this page and try the next one
+        debugLines.push("  -> error: " + e.message);
         continue;
       }
     }
 
-    throw new Error(`Could not find a page with enough text in "${categoryName}". Try a different genre.`);
+    showDebug(debugLines.join("\n"));
+    throw new Error("Could not find a page with enough text in \"" + categoryName + "\". Try again or pick a different genre.");
   }
 
   function cleanWikitext(raw) {
     return raw
-      // Remove <ref>...</ref> and self-closing <ref ... />
       .replace(/<ref[^>]*>[\s\S]*?<\/ref>/gi, "")
       .replace(/<ref[^>]*\/>/gi, "")
-      // Remove all other HTML tags
       .replace(/<[^>]+>/g, "")
-      // Remove {{templates}} including nested ones (run twice for nesting)
       .replace(/\{\{[^{}]*\}\}/g, "").replace(/\{\{[^{}]*\}\}/g, "")
-      // Remove [[ File: / Image: ]] blocks
       .replace(/\[\[(?:File|Image|Datei|Fichier|Archivo|Immagine|Bestand):[^\]]*\]\]/gi, "")
-      // Convert [[link|text]] → text, [[link]] → link
       .replace(/\[\[(?:[^|\]]*\|)?([^\]]+)\]\]/g, "$1")
-      // Remove remaining [ external links ]
       .replace(/\[https?:\/\/[^\]]*\]/g, "")
-      // Remove == section headers ==
       .replace(/={2,}[^=\n]+=+/g, "")
-      // Remove bold/italic markup
-      .replace(/'{2,3}/g, "")
-      // Remove lines that are only punctuation/whitespace (artifacts)
+      .replace(/\'\'{2,3}/g, "")
       .replace(/^[\s|!{}\[\]]+$/gm, "")
-      // Collapse 3+ newlines to 2
       .replace(/\n{3,}/g, "\n\n")
       .trim();
   }
 
   function trimToWords(text, maxWords) {
-    // Split into paragraphs, filter empty ones, rejoin, then word-limit
     const paras = text.split("\n\n").map(p => p.trim()).filter(p => p.length > 20);
-    const rejoined = paras.join("\n\n");
-    return rejoined.split(/\s+/).slice(0, maxWords).join(" ");
+    return paras.join("\n\n").split(/\s+/).slice(0, maxWords).join(" ");
   }
 
   // ── Normalise (news) ──────────────────────────────────────────
