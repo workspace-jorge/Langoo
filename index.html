@@ -703,22 +703,17 @@ async function generateLiterature() {
       const book = shuffled[i];
       const formats = book.formats || {};
 
-      // Find a plain text URL — must end in .txt, not .m3u or .zip
-      const txtUrl = Object.entries(formats)
-        .filter(([mime, url]) => mime.startsWith("text/plain") && url.endsWith(".txt"))
-        .map(([, url]) => url)[0] || null;
-
-      if (!txtUrl) continue;
-
       try {
-        const proxyTxtUrl = PROXY_URL + "/gutenberg?url=" + encodeURIComponent(txtUrl);
+        // Use Gutenberg's reliable cache URL pattern instead of Gutendex-provided URLs
+        const reliableTxtUrl = `https://www.gutenberg.org/cache/epub/${book.id}/pg${book.id}.txt`;
+        const proxyTxtUrl = PROXY_URL + "/gutenberg?url=" + encodeURIComponent(reliableTxtUrl);
         const txtRes = await fetch(proxyTxtUrl);
         const txtData = await txtRes.json();
         const rawText = txtData?.text || "";
         if (!rawText || rawText.length < 500) continue;
 
-        // Detect audiobook playlists — skip if it looks like a track listing
-        if (rawText.includes("Read by:") || rawText.includes("#EXTM3U") || rawText.includes("00:0") ) continue;
+        // Detect audiobook playlists or HTML error pages — skip
+        if (rawText.includes("Read by:") || rawText.includes("#EXTM3U") || rawText.includes("00:0") || rawText.includes("<html") || rawText.includes("Error 404")) continue;
 
         // Skip Gutenberg boilerplate: find the first real paragraph after line 60
         const lines = rawText.split("\n");
