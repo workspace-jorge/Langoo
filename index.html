@@ -237,7 +237,7 @@
   .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
   .history-loading { text-align: center; padding: 2rem; color: var(--navy-muted); font-size: 13px; font-weight: 600; }
 
-  @media (max-width: 640px) {  @media (max-width: 640px) {
+  @media (max-width: 640px) {
     .app-wrapper { flex-direction: column; }
     .sidebar { width: 100%; height: auto; position: static; border-right: none; flex-direction: row; padding: 0; overflow-x: auto; overflow-y: hidden; }
     .sidebar-label { display: none; }
@@ -276,7 +276,12 @@
 
     <!-- History panel -->
     <div class="history-outer" id="historyOuter" style="display:none">
-      <div class="history-filter-row" id="historyFilterRow"></div>
+      <div class="history-filter-section">
+        <span class="control-label" id="uiHistoryLevelLabel"></span>
+        <div class="history-filter-row" id="historyLevelRow"></div>
+        <span class="control-label" id="uiHistoryTopicLabel" style="margin-top:0.75rem;display:block"></span>
+        <div class="history-filter-row" id="historyFilterRow"></div>
+      </div>
       <div id="historyGrid" class="history-grid"></div>
       <div class="pagination-row" id="paginationRow"></div>
     </div>
@@ -1070,17 +1075,18 @@ let currentSubMode = "generate"; // "generate" | "browse"
 let historyPage    = 0;
 let historyCursors = [null]; // cursors[i] = cursor to fetch page i
 let historyDone    = false;
-let historyFilter  = null; // null = all categories
+let historyFilter      = null; // null = all categories
+let historyLevelFilter = null; // null = all levels
 
 // ── Sub-tab UI strings (added to each language) ───────────────────
 const SUB_UI = {
-  de: { generate:"Generieren", browse:"Archiv", empty:"Noch keine Artikel gespeichert.", loadMore:"Mehr laden", prev:"← Zurück", filterAll:"Alle" },
-  en: { generate:"Generate",   browse:"Browse",  empty:"No articles saved yet.",         loadMore:"Load more", prev:"← Back",    filterAll:"All" },
-  fr: { generate:"Générer",    browse:"Parcourir",empty:"Aucun article sauvegardé.",     loadMore:"Plus",      prev:"← Retour",  filterAll:"Tous" },
-  es: { generate:"Generar",    browse:"Explorar", empty:"No hay artículos guardados.",   loadMore:"Más",       prev:"← Atrás",   filterAll:"Todos" },
-  it: { generate:"Genera",     browse:"Sfoglia",  empty:"Nessun articolo salvato.",      loadMore:"Altro",     prev:"← Indietro",filterAll:"Tutti" },
-  pt: { generate:"Gerar",      browse:"Explorar", empty:"Nenhum artigo salvo ainda.",    loadMore:"Mais",      prev:"← Voltar",  filterAll:"Todos" },
-  nl: { generate:"Genereren",  browse:"Bladeren", empty:"Nog geen artikelen opgeslagen.",loadMore:"Meer",      prev:"← Terug",   filterAll:"Alle" },
+  de: { generate:"Generieren", browse:"Archiv",    empty:"Noch keine Artikel gespeichert.", loadMore:"Mehr laden", prev:"← Zurück",   filterAll:"Alle", levelLabel:"Sprachniveau", topicLabel:"Thema" },
+  en: { generate:"Generate",   browse:"Browse",    empty:"No articles saved yet.",          loadMore:"Load more",  prev:"← Back",     filterAll:"All",  levelLabel:"Level",         topicLabel:"Topic" },
+  fr: { generate:"Générer",    browse:"Parcourir", empty:"Aucun article sauvegardé.",       loadMore:"Plus",       prev:"← Retour",   filterAll:"Tous", levelLabel:"Niveau",        topicLabel:"Thème" },
+  es: { generate:"Generar",    browse:"Explorar",  empty:"No hay artículos guardados.",     loadMore:"Más",        prev:"← Atrás",    filterAll:"Todos",levelLabel:"Nivel",         topicLabel:"Tema" },
+  it: { generate:"Genera",     browse:"Sfoglia",   empty:"Nessun articolo salvato.",        loadMore:"Altro",      prev:"← Indietro", filterAll:"Tutti",levelLabel:"Livello",       topicLabel:"Argomento" },
+  pt: { generate:"Gerar",      browse:"Explorar",  empty:"Nenhum artigo salvo ainda.",      loadMore:"Mais",       prev:"← Voltar",   filterAll:"Todos",levelLabel:"Nível",         topicLabel:"Tema" },
+  nl: { generate:"Genereren",  browse:"Bladeren",  empty:"Nog geen artikelen opgeslagen.",  loadMore:"Meer",       prev:"← Terug",    filterAll:"Alle", levelLabel:"Niveau",        topicLabel:"Onderwerp" },
 };
 
 // ── Switch between Generate and Browse sub-tabs ───────────────────
@@ -1093,7 +1099,7 @@ function switchSubMode(sub) {
   document.getElementById("articleOuter").style.display    = "none";
   hideError(); hideDebug();
   if (sub === "browse") {
-    historyPage = 0; historyCursors = [null]; historyDone = false; historyFilter = null;
+    historyPage = 0; historyCursors = [null]; historyDone = false; historyFilter = null; historyLevelFilter = null;
     loadHistory();
   }
 }
@@ -1101,8 +1107,10 @@ function switchSubMode(sub) {
 // Update sub-tab labels when language changes
 function updateSubLabels() {
   const ui = SUB_UI[currentLang] || SUB_UI.en;
-  document.getElementById("uiSubGenerate").textContent = ui.generate;
-  document.getElementById("uiSubBrowse").textContent   = ui.browse;
+  document.getElementById("uiSubGenerate").textContent      = ui.generate;
+  document.getElementById("uiSubBrowse").textContent        = ui.browse;
+  document.getElementById("uiHistoryLevelLabel").textContent = ui.levelLabel;
+  document.getElementById("uiHistoryTopicLabel").textContent = ui.topicLabel;
 }
 
 // ── Save article to KV (fire and forget) ─────────────────────────
@@ -1116,6 +1124,13 @@ async function saveArticleToKV(lang, mode, category, title, level, data) {
   } catch(e) { /* silent fail */ }
 }
 
+// ── Apply level filter — now server-side via KV prefix ───────────
+function applyLevelFilter() {
+  // Reset pagination and reload from KV with new level in prefix
+  historyPage = 0; historyCursors = [null]; historyDone = false;
+  loadHistory();
+}
+
 // ── Load history page ─────────────────────────────────────────────
 async function loadHistory() {
   const ui       = SUB_UI[currentLang] || SUB_UI.en;
@@ -1127,19 +1142,37 @@ async function loadHistory() {
   grid.innerHTML = `<div class="history-loading">…</div>`;
   pageRow.innerHTML = "";
 
-  // Build category filter chips
-  filterRow.innerHTML = "";
-  const allChip = document.createElement("button");
-  allChip.className = "pick-btn" + (historyFilter === null ? " active" : "");
-  allChip.textContent = ui.filterAll;
-  allChip.onclick = () => { historyFilter = null; historyPage = 0; historyCursors = [null]; loadHistory(); };
-  filterRow.appendChild(allChip);
+  // Build level chips FIRST (matches Generate layout: level on top)
+  const levelRow = document.getElementById("historyLevelRow");
+  levelRow.innerHTML = "";
+  const levels = ["A1","A2","B1","B2","C1","C2"];
+  const allLevelChip = document.createElement("button");
+  allLevelChip.className = "pick-btn" + (historyLevelFilter === null ? " active" : "");
+  allLevelChip.textContent = ui.filterAll;
+  allLevelChip.onclick = () => { historyLevelFilter = null; applyLevelFilter(); };
+  levelRow.appendChild(allLevelChip);
+  levels.forEach(lvl => {
+    const chip = document.createElement("button");
+    chip.className = "pick-btn" + (historyLevelFilter === lvl ? " active" : "");
+    chip.dataset.level = lvl;
+    chip.textContent = lvl;
+    chip.style.cssText = "min-width:44px;text-align:center;flex:1";
+    chip.onclick = () => { historyLevelFilter = lvl; applyLevelFilter(); };
+    levelRow.appendChild(chip);
+  });
 
+  // Build category chips SECOND (matches Generate layout: theme below level)
+  filterRow.innerHTML = "";
   const cats = currentMode === "news" ? lang.newsCategories
              : currentMode === "reads" ? lang.readsCategories
              : currentMode === "wiki"  ? lang.wikiCategories
              : currentMode === "lit"   ? lang.litGenres
              : {};
+  const allCatChip = document.createElement("button");
+  allCatChip.className = "pick-btn" + (historyFilter === null ? " active" : "");
+  allCatChip.textContent = ui.filterAll;
+  allCatChip.onclick = () => { historyFilter = null; historyPage = 0; historyCursors = [null]; loadHistory(); };
+  filterRow.appendChild(allCatChip);
   Object.entries(cats).forEach(([key, label]) => {
     const chip = document.createElement("button");
     chip.className = "pick-btn" + (historyFilter === key ? " active" : "");
@@ -1152,10 +1185,12 @@ async function loadHistory() {
   try {
     const cursor   = historyCursors[historyPage] || "";
     const category = historyFilter || "";
+    const level    = historyLevelFilter || "";
     let fetchUrl   = PROXY_URL + "/history?lang=" + encodeURIComponent(currentLang)
                    + "&mode=" + encodeURIComponent(currentMode)
                    + "&limit=12";
     if (category) fetchUrl += "&category=" + encodeURIComponent(category);
+    if (level)    fetchUrl += "&level="    + encodeURIComponent(level);
     if (cursor)   fetchUrl += "&cursor="   + encodeURIComponent(cursor);
 
     const res  = await fetch(fetchUrl);
@@ -1174,12 +1209,13 @@ async function loadHistory() {
         const date     = item.savedAt ? new Date(item.savedAt).toLocaleDateString() : "";
         const levelTag = item.level ? "<span class='tag' style='font-size:9px;padding:2px 7px'>" + escapeHtml(item.level) + "</span>" : "";
         const catTag   = catLabel    ? "<span class='tag tag-domain' style='font-size:9px;padding:2px 7px'>" + escapeHtml(catLabel) + "</span>" : "";
-        return "<div class='history-card' data-key='" + escapeHtml(item.key) + "'>"
+        return "<div class='history-card' data-key='" + escapeHtml(item.key) + "' data-level='" + escapeHtml(item.level||"") + "'>"
           + "<div class='history-card-title'>" + escapeHtml(item.title || "—") + "</div>"
           + "<div class='history-card-meta'>" + levelTag + catTag + "</div>"
           + "<div class='history-card-date'>" + date + "</div>"
           + "</div>";
       }).join("");
+      applyLevelFilter();
       // Use event delegation so no inline onclick with escaping issues
       grid.addEventListener("click", function handler(e) {
         const card = e.target.closest(".history-card");
