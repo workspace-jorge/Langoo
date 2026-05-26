@@ -818,7 +818,7 @@ async function generateArticle(mode) {
   try {
     const prompt = mode === "news" ? await buildNewsPrompt(selectedCategory, selectedLevel, lang) : await buildReadsPrompt(selectedCategory, selectedLevel, lang);
     const res = await fetch(PROXY_URL, { method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ contents:[{role:"user",parts:[{text:prompt}]}], generationConfig:{temperature:1.1,maxOutputTokens:4096} }) });
+      body: JSON.stringify({ contents:[{role:"user",parts:[{text:prompt}]}], generationConfig:{temperature:1.1,maxOutputTokens:8192,responseMimeType:"application/json"} }) });
     const raw = await parseProxy(res);
     const d = JSON.parse(raw);
     d.domain = d.domain || selectedCategory;
@@ -865,7 +865,7 @@ async function generateWikipedia() {
     // AI generates vocab + questions
     const prompt = buildExternalTextPrompt(excerpt, lang);
     const res = await fetch(PROXY_URL, { method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ contents:[{role:"user",parts:[{text:prompt}]}], generationConfig:{temperature:0.7,maxOutputTokens:8192} }) });
+      body: JSON.stringify({ contents:[{role:"user",parts:[{text:prompt}]}], generationConfig:{temperature:0.7,maxOutputTokens:8192,responseMimeType:"application/json"} }) });
     const raw = await parseProxy(res);
     const d = JSON.parse(raw);
 
@@ -927,7 +927,7 @@ async function generateLiterature() {
 
     const prompt = buildExternalTextPrompt(excerpt, lang);
     const res = await fetch(PROXY_URL, { method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ contents:[{role:"user",parts:[{text:prompt}]}], generationConfig:{temperature:0.7,maxOutputTokens:8192} }) });
+      body: JSON.stringify({ contents:[{role:"user",parts:[{text:prompt}]}], generationConfig:{temperature:0.7,maxOutputTokens:8192,responseMimeType:"application/json"} }) });
     const raw = await parseProxy(res);
     const d = JSON.parse(raw);
 
@@ -949,7 +949,7 @@ async function generateCustom() {
   try {
     const prompt = buildExternalTextPrompt(text, lang);
     const res = await fetch(PROXY_URL, { method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ contents:[{role:"user",parts:[{text:prompt}]}], generationConfig:{temperature:0.7,maxOutputTokens:8192} }) });
+      body: JSON.stringify({ contents:[{role:"user",parts:[{text:prompt}]}], generationConfig:{temperature:0.7,maxOutputTokens:8192,responseMimeType:"application/json"} }) });
     const raw = await parseProxy(res);
     const d = JSON.parse(raw);
     renderExternalText(d, lang, lang.tabCustom, text, null, null, null, "Custom", lang.bylineCustom);
