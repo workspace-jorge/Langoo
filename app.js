@@ -108,6 +108,13 @@ let historyDone        = false;      // true when the worker says there are no m
 let historyFilter      = null;       // active category filter key in browse (null = All)
 let historyLevelFilter = null;       // active level filter in browse (null = All)
 
+// --- Correction state ---
+// Stores the current article's text and comprehension questions so the
+// Correction section can read them without hunting through the DOM.
+// Set every time an article is rendered, cleared on new generation.
+let currentContext   = "";
+let currentQuestions = [];
+
 // --- Avoidance cache ---
 // Stores titles of previously generated articles per lang+mode+category,
 // so the prompt can instruct the AI to avoid repeating topics.
@@ -740,6 +747,8 @@ function renderArticle(d, lang, levelTag, domainLabel, byline, nextLabel) {
   document.getElementById("uiComprehensionHeader").textContent     = lang.comprehensionHeader;
   document.getElementById("uiDiscussionHeader").textContent        = lang.discussionHeader;
   document.getElementById("uiNextBtn").textContent                 = nextLabel;
+  currentContext   = (d.paragraphs || []).slice(0, 4).join("\n\n");
+  currentQuestions = (d.comprehension || []).slice(0, 4);
   renderVocab(d.vocab || []);
   document.getElementById("articleBody").innerHTML = (d.paragraphs || []).slice(0, 4).map(p => `<p>${escapeHtml(p)}</p>`).join("");
   renderQuestions(d.comprehension || [], d.discussion || []);
@@ -767,6 +776,8 @@ function renderExternalText(d, lang, title, text, url, notice, linkLabel, tagLab
   document.getElementById("uiComprehensionHeader").textContent     = lang.comprehensionHeader;
   document.getElementById("uiDiscussionHeader").textContent        = lang.discussionHeader;
   document.getElementById("uiNextBtn").textContent                 = lang.nextBtnFetch;
+  currentContext   = text;
+  currentQuestions = (d.comprehension || []).slice(0, 4);
   renderVocab(d.vocab || []);
   const paras = text.split("\n\n").filter(p => p.trim().length > 0).map(p => `<p>${escapeHtml(p.trim())}</p>`).join("");
   document.getElementById("articleBody").innerHTML = paras || `<p>${escapeHtml(text)}</p>`;
@@ -784,16 +795,33 @@ function renderVocab(vocab) {
   ).join("");
 }
 
-// renderQuestions builds the comprehension and discussion question lists.
-// When the Correction feature is added, this function will be extended
-// to include answer text areas below each comprehension question.
+// renderQuestions renders comprehension and discussion question lists.
+// Comprehension questions include an answer textarea and a feedback area
+// below each question — used by checkAnswers() in the Correction section.
+// Discussion questions are display-only (no answer input).
+// The "Check answers" button is appended after the comprehension list
+// and wired to checkAnswers() here, because the button is recreated on
+// every render and cannot be wired once in App Init.
 function renderQuestions(comp, disc) {
   document.getElementById("comprehensionList").innerHTML = comp.slice(0, 4).map((q, i) =>
-    `<div class="q-item"><span class="q-num">${i + 1}</span><span class="q-text">${escapeHtml(q)}</span></div>`
-  ).join("");
+    `<div class="q-item" id="q-item-${i}">
+      <span class="q-num">${i + 1}</span>
+      <div class="q-item-inner">
+        <span class="q-text">${escapeHtml(q)}</span>
+        <textarea class="answer-textarea" id="answer-${i}" placeholder="…"></textarea>
+        <div class="answer-feedback" id="feedback-${i}" style="display:none"></div>
+      </div>
+    </div>`
+  ).join("") + `<div class="check-row">
+    <button class="check-btn" id="checkBtn">✓ Check answers</button>
+    <span class="check-hint" id="checkHint"></span>
+  </div>`;
+
   document.getElementById("discussionList").innerHTML = disc.slice(0, 4).map((q, i) =>
     `<div class="q-item"><span class="q-num">${i + 1}</span><span class="q-text">${escapeHtml(q)}</span></div>`
   ).join("");
+
+  document.getElementById("checkBtn").addEventListener("click", checkAnswers);
 }
 
 function showArticle() {
@@ -1078,10 +1106,67 @@ async function loadSavedArticle(key) {
 //   before this section is built.
 // ================================================================
 
-// (functions will be added here in a future session)
+// checkAnswers collects the student's 4 answers, sends them to the
+// worker's /correct route along with the article context and questions,
+// and displays inline feedback below each comprehension question.
+//
+// Reads currentContext and currentQuestions from State — set by
+// renderArticle() and renderExternalText() in the Renderer each time
+// a new article is displayed.
+async function checkAnswers() {
+  const btn  = document.getElementById("checkBtn");
+  const hint = document.getElementById("checkHint");
+  const lang = LANGUAGES[currentLang];
 
+  const answers = [0, 1, 2, 3].map(i => {
+    const el = document.getElementById("answer-" + i);
+    return el ? el.value.trim() : "";
+  });
 
+  if (answers.every(a => a === "")) {
+    hint.textContent = lang.noText || "Please write at least one answer.";
+    return;
+  }
 
+  btn.disabled    = true;
+  btn.textContent = "…";
+  hint.textContent = "";
+
+  [0, 1, 2, 3].forEach(i => {
+    const el = document.getElementById("feedback-" + i);
+    if (el) { el.style.display = "none"; el.textContent = ""; el.className = "answer-feedback"; }
+  });
+
+  try {
+    const res  = await fetch(PROXY_URL + "/correct", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({
+        lang:      lang.targetLanguage,
+        context:   currentContext,
+        questions: currentQuestions,
+        answers,
+      }),
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    data.results.forEach((result, i) => {
+      const el = document.getElementById("feedback-" + i);
+      if (!el) return;
+      el.textContent   = result.feedback;
+      el.className     = "answer-feedback " + (result.correct ? "feedback-correct" : "feedback-incorrect");
+      el.style.display = "block";
+    });
+
+  } catch(e) {
+    hint.textContent = "Could not check answers: " + e.message;
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = "✓ Check answers";
+  }
+}
 
 // ================================================================
 // 8. APP INIT
