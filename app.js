@@ -900,7 +900,7 @@ function renderMCQStage() {
 
   document.getElementById("mcqSkip").addEventListener("click", () => {
     currentExerciseStage = "comprehension";
-renderComprehensionStage(currentQuestions, currentDiscussion);
+  renderComprehensionStage(currentQuestions, currentDiscussion);
   });
 
   document.getElementById("mcqNext").addEventListener("click", () => {
@@ -943,9 +943,10 @@ function shuffleMCQOptions(options, seed) {
 // answer textareas and the Check answers button.
 // The discussion questions are rendered in the right-hand column.
 function renderComprehensionStage(comp, disc) {
-  // Restore both columns — they were hidden during MCQ stage.
-  document.querySelector(".questions-row").style.gridTemplateColumns = "";
-  document.getElementById("discussionList").closest(".questions-block").style.display = "";
+  // Right column hidden during comprehension stage — it will appear when the discussion stage is built.
+  document.querySelector(".questions-row").style.gridTemplateColumns = "1fr";
+  document.getElementById("discussionList").closest(".questions-block").style.display = "none";
+
 
   document.getElementById("comprehensionList").innerHTML = comp.slice(0, 4).map((q, i) =>
     `<div class="q-item" id="q-item-${i}">
@@ -961,10 +962,10 @@ function renderComprehensionStage(comp, disc) {
     <span class="check-hint" id="checkHint"></span>
   </div>`;
 
-  document.getElementById("discussionList").innerHTML = disc.slice(0, 4).map((q, i) =>
-    `<div class="q-item"><span class="q-num">${i + 1}</span><span class="q-text">${escapeHtml(q)}</span></div>`
-  ).join("");
-
+  // Discussion questions are not shown during the comprehension stage —
+  // they appear only when the user advances to the discussion stage.
+  // The right column is kept visible but empty for now.
+  document.getElementById("discussionList").innerHTML = "";
   document.getElementById("checkBtn").addEventListener("click", checkAnswers);
 }
 
