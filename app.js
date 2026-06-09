@@ -130,6 +130,7 @@ let currentExerciseStage = "mcq";
 let currentMCQIndex      = 0;
 let mcqResults           = [null, null, null, null];
 let currentMCQs          = []; // full multiple_choice array for the current article
+let currentDiscussion    = []; // discussion questions for the current article
 
 // --- Avoidance cache ---
 // Stores titles of previously generated articles per lang+mode+category,
@@ -767,6 +768,7 @@ function renderArticle(d, lang, levelTag, domainLabel, byline, nextLabel) {
   currentContext   = (d.paragraphs || []).slice(0, 4).join("\n\n");
   currentQuestions = (d.comprehension || []).slice(0, 4);
   currentMCQs      = (d.multiple_choice || []).slice(0, 4);
+  currentDiscussion = (d.discussion || []).slice(0, 4);
   // Start at MCQ stage only if multiple choice questions exist (new articles).
   // Old archived articles predate this feature and go straight to comprehension.
   currentExerciseStage = currentMCQs.length > 0 ? "mcq" : "comprehension";
@@ -802,6 +804,7 @@ function renderExternalText(d, lang, title, text, url, notice, linkLabel, tagLab
   currentContext   = text;
   currentQuestions = (d.comprehension || []).slice(0, 4);
   currentMCQs      = (d.multiple_choice || []).slice(0, 4);
+  currentDiscussion = (d.discussion || []).slice(0, 4);
   currentExerciseStage = currentMCQs.length > 0 ? "mcq" : "comprehension";
   currentMCQIndex      = 0;
   mcqResults           = [null, null, null, null];
@@ -869,7 +872,11 @@ function renderMCQStage() {
       : `<div class="mcq-feedback mcq-feedback-incorrect">✗ The correct answer is: ${escapeHtml(mcq.correct)}</div>`
     : "";
 
-  const nextLabel = isLast ? "Comprehension →" : "›";
+  // During MCQ stage, hide the right column entirely — it should not
+  // appear until the comprehension stage. The questions-row grid would
+  // otherwise show an empty white card on the right.
+  document.querySelector(".questions-row").style.gridTemplateColumns = "1fr";
+  document.getElementById("discussionList").closest(".questions-block").style.display = "none";
 
   document.getElementById("comprehensionList").innerHTML = `
     <div class="mcq-progress">${currentMCQIndex + 1} / ${currentMCQs.length}</div>
@@ -879,10 +886,8 @@ function renderMCQStage() {
     <div class="mcq-nav">
       <button class="mcq-nav-btn" id="mcqBack" ${isFirst ? "disabled" : ""}>‹</button>
       <button class="mcq-nav-btn mcq-nav-skip" id="mcqSkip" title="Skip to questions">›› <span class="mcq-nav-label">Skip to questions</span></button>
-      <button class="mcq-nav-btn mcq-nav-next" id="mcqNext">${nextLabel} <span class="mcq-nav-label">${isLast ? "Comprehension →" : ""}</span></button>
+      <button class="mcq-nav-btn mcq-nav-next" id="mcqNext">› <span class="mcq-nav-label">${isLast ? "Comprehension →" : ""}</span></button>
     </div>`;
-
-  document.getElementById("discussionList").innerHTML = "";
 
   // Wire MCQ option buttons
   document.querySelectorAll(".mcq-option").forEach(btn => {
@@ -895,13 +900,13 @@ function renderMCQStage() {
 
   document.getElementById("mcqSkip").addEventListener("click", () => {
     currentExerciseStage = "comprehension";
-    renderComprehensionStage(currentQuestions, []);
+renderComprehensionStage(currentQuestions, currentDiscussion);
   });
 
   document.getElementById("mcqNext").addEventListener("click", () => {
     if (isLast) {
       currentExerciseStage = "comprehension";
-      renderComprehensionStage(currentQuestions, []);
+      renderComprehensionStage(currentQuestions, currentDiscussion);
     } else {
       currentMCQIndex++;
       renderMCQStage();
@@ -938,6 +943,10 @@ function shuffleMCQOptions(options, seed) {
 // answer textareas and the Check answers button.
 // The discussion questions are rendered in the right-hand column.
 function renderComprehensionStage(comp, disc) {
+  // Restore both columns — they were hidden during MCQ stage.
+  document.querySelector(".questions-row").style.gridTemplateColumns = "";
+  document.getElementById("discussionList").closest(".questions-block").style.display = "";
+
   document.getElementById("comprehensionList").innerHTML = comp.slice(0, 4).map((q, i) =>
     `<div class="q-item" id="q-item-${i}">
       <span class="q-num">${i + 1}</span>
