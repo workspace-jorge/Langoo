@@ -115,6 +115,22 @@ let historyLevelFilter = null;       // active level filter in browse (null = Al
 let currentContext   = "";
 let currentQuestions = [];
 
+// --- Exercise state ---
+// Tracks the user's progress through the stepped exercise flow:
+// MCQ stage → Comprehension stage → Discussion stage.
+//
+// mcqResults stores per-question state rather than a simple boolean so
+// that navigating back to a previous MCQ restores the answer and feedback.
+// null = unanswered; { selected: "option text", correct: bool } = answered.
+//
+// currentExerciseStage starts as "mcq" for new articles (which have the
+// multiple_choice field) and "comprehension" for old archived articles
+// that predate the multiple choice feature.
+let currentExerciseStage = "mcq";
+let currentMCQIndex      = 0;
+let mcqResults           = [null, null, null, null];
+let currentMCQs          = []; // full multiple_choice array for the current article
+
 // --- Avoidance cache ---
 // Stores titles of previously generated articles per lang+mode+category,
 // so the prompt can instruct the AI to avoid repeating topics.
@@ -433,11 +449,11 @@ ${avoidSection}
 Be specific and inventive — pick an unexpected angle, a concrete location, a surprising statistic, or an unusual character. Avoid generic or predictable takes on the category.
 Output language: Write the ENTIRE response in ${lang.targetLanguage} only.
 Level rules for ${level}: ${LEVEL_INSTRUCTIONS[level]}
-Rules: neutral journalistic tone; no opinions; sounds current (use "recently", "this week", etc.); mention at least one specific place/number/organisation; exactly 4 paragraphs of 3-4 sentences; 6 vocabulary entries; 4 comprehension questions; 4 discussion questions.
+Rules: neutral journalistic tone; no opinions; sounds current (use "recently", "this week", etc.); mention at least one specific place/number/organisation; exactly 4 paragraphs of 3-4 sentences; 6 vocabulary entries; 4 comprehension questions; 4 discussion questions; 4 multiple choice questions.
+Multiple choice rules: each question must test a DIFFERENT fact from the text than the comprehension questions. Each question has exactly 4 options. The "correct" field must be the FULL TEXT of the correct option, not an index.
 Reply with ONLY valid JSON:
-{"domain":"...","title":"...","vocab":[{"word":"...","definition":"...","example":"..."}],"paragraphs":["...","...","...","..."],"comprehension":["...","...","...","..."],"discussion":["...","...","...","..."]}`;
+{"domain":"...","title":"...","vocab":[{"word":"...","definition":"...","example":"..."}],"paragraphs":["...","...","...","..."],"comprehension":["...","...","...","..."],"discussion":["...","...","...","..."],"multiple_choice":[{"question":"...","options":["...","...","...","..."],"correct":"..."},{"question":"...","options":["...","...","...","..."],"correct":"..."},{"question":"...","options":["...","...","...","..."],"correct":"..."},{"question":"...","options":["...","...","...","..."],"correct":"..."}]}`;
 }
-
 async function buildReadsPrompt(category, level, lang) {
   const avoidList = await getAvoidList(lang.htmlLang, "reads", category);
   const avoidSection = avoidList.length > 0
@@ -450,9 +466,10 @@ ${avoidSection}
 Be inventive — pick a specific, unexpected, or underexplored angle within this category rather than the most obvious one.
 Output language: Write the ENTIRE response in ${lang.targetLanguage} only.
 Level rules for ${level}: ${LEVEL_INSTRUCTIONS[level]}
-Rules: thoughtful, essay-like tone; factual and informative; no bullet points; include at least one concrete detail (name, date, place, study); exactly 4 paragraphs of 4-5 sentences; 6 vocabulary entries; 4 comprehension questions; 4 open discussion questions.
+Rules: thoughtful, essay-like tone; factual and informative; no bullet points; include at least one concrete detail (name, date, place, study); exactly 4 paragraphs of 4-5 sentences; 6 vocabulary entries; 4 comprehension questions; 4 open discussion questions; 4 multiple choice questions.
+Multiple choice rules: each question must test a DIFFERENT fact from the text than the comprehension questions. Each question has exactly 4 options. The "correct" field must be the FULL TEXT of the correct option, not an index.
 Reply with ONLY valid JSON:
-{"domain":"...","title":"...","vocab":[{"word":"...","definition":"...","example":"..."}],"paragraphs":["...","...","...","..."],"comprehension":["...","...","...","..."],"discussion":["...","...","...","..."]}`;
+{"domain":"...","title":"...","vocab":[{"word":"...","definition":"...","example":"..."}],"paragraphs":["...","...","...","..."],"comprehension":["...","...","...","..."],"discussion":["...","...","...","..."],"multiple_choice":[{"question":"...","options":["...","...","...","..."],"correct":"..."},{"question":"...","options":["...","...","...","..."],"correct":"..."},{"question":"...","options":["...","...","...","..."],"correct":"..."},{"question":"...","options":["...","...","...","..."],"correct":"..."}]}`;
 }
 
 // Used for Wikipedia, Literature, and Custom Text modes.
@@ -470,7 +487,7 @@ Rules:
 - comprehension: exactly 4 short questions whose answers are in the text, in ${lang.targetLanguage}.
 - discussion: exactly 4 short open questions on the text's themes, in ${lang.targetLanguage}.
 Reply with ONLY valid JSON:
-{"vocab":[{"word":"...","definition":"...","example":"..."},{"word":"...","definition":"...","example":"..."},{"word":"...","definition":"...","example":"..."},{"word":"...","definition":"...","example":"..."},{"word":"...","definition":"...","example":"..."},{"word":"...","definition":"...","example":"..."}],"comprehension":["...","...","...","..."],"discussion":["...","...","...","..."]}`;
+{"vocab":[{"word":"...","definition":"...","example":"..."},{"word":"...","definition":"...","example":"..."},{"word":"...","definition":"...","example":"..."},{"word":"...","definition":"...","example":"..."},{"word":"...","definition":"...","example":"..."},{"word":"...","definition":"...","example":"..."}],"comprehension":["...","...","...","..."],"discussion":["...","...","...","..."],"multiple_choice":[{"question":"...","options":["...","...","...","..."],"correct":"..."},{"question":"...","options":["...","...","...","..."],"correct":"..."},{"question":"...","options":["...","...","...","..."],"correct":"..."},{"question":"...","options":["...","...","...","..."],"correct":"..."}]}`;
 }
 
 // --- Generate functions ---
@@ -508,7 +525,7 @@ async function generateArticle(mode) {
     const d = JSON.parse(raw);
     d.domain = d.domain || selectedCategory;
     d.title  = d.title  || "—";
-    ["vocab","paragraphs","comprehension","discussion"].forEach(k => { if (!Array.isArray(d[k])) d[k] = []; });
+    ["vocab","paragraphs","comprehension","discussion","multiple_choice"].forEach(k => { if (!Array.isArray(d[k])) d[k] = []; });
     const byline = mode === "news" ? lang.byline : lang.bylineReads;
     renderArticle(d, lang, selectedLevel, lang.newsCategories[d.domain] || lang.readsCategories[d.domain] || d.domain, byline, lang.nextBtn);
     addToAvoidCache(lang.htmlLang, mode, selectedCategory, d.title);
@@ -749,6 +766,12 @@ function renderArticle(d, lang, levelTag, domainLabel, byline, nextLabel) {
   document.getElementById("uiNextBtn").textContent                 = nextLabel;
   currentContext   = (d.paragraphs || []).slice(0, 4).join("\n\n");
   currentQuestions = (d.comprehension || []).slice(0, 4);
+  currentMCQs      = (d.multiple_choice || []).slice(0, 4);
+  // Start at MCQ stage only if multiple choice questions exist (new articles).
+  // Old archived articles predate this feature and go straight to comprehension.
+  currentExerciseStage = currentMCQs.length > 0 ? "mcq" : "comprehension";
+  currentMCQIndex      = 0;
+  mcqResults           = [null, null, null, null];
   renderVocab(d.vocab || []);
   document.getElementById("articleBody").innerHTML = (d.paragraphs || []).slice(0, 4).map(p => `<p>${escapeHtml(p)}</p>`).join("");
   renderQuestions(d.comprehension || [], d.discussion || []);
@@ -778,6 +801,10 @@ function renderExternalText(d, lang, title, text, url, notice, linkLabel, tagLab
   document.getElementById("uiNextBtn").textContent                 = lang.nextBtnFetch;
   currentContext   = text;
   currentQuestions = (d.comprehension || []).slice(0, 4);
+  currentMCQs      = (d.multiple_choice || []).slice(0, 4);
+  currentExerciseStage = currentMCQs.length > 0 ? "mcq" : "comprehension";
+  currentMCQIndex      = 0;
+  mcqResults           = [null, null, null, null];
   renderVocab(d.vocab || []);
   const paras = text.split("\n\n").filter(p => p.trim().length > 0).map(p => `<p>${escapeHtml(p.trim())}</p>`).join("");
   document.getElementById("articleBody").innerHTML = paras || `<p>${escapeHtml(text)}</p>`;
@@ -795,14 +822,122 @@ function renderVocab(vocab) {
   ).join("");
 }
 
-// renderQuestions renders comprehension and discussion question lists.
-// Comprehension questions include an answer textarea and a feedback area
-// below each question — used by checkAnswers() in the Correction section.
-// Discussion questions are display-only (no answer input).
-// The "Check answers" button is appended after the comprehension list
-// and wired to checkAnswers() here, because the button is recreated on
-// every render and cannot be wired once in App Init.
+// renderQuestions is the entry point for the exercise panel.
+// It reads currentExerciseStage from State and renders the appropriate stage.
+// Called after every article render and after stage transitions.
 function renderQuestions(comp, disc) {
+  if (currentExerciseStage === "mcq" && currentMCQs.length > 0) {
+    renderMCQStage();
+  } else if (currentExerciseStage === "comprehension") {
+    renderComprehensionStage(comp, disc);
+  } else if (currentExerciseStage === "discussion") {
+    renderDiscussionStage(disc);
+  }
+}
+
+// renderMCQStage renders the full MCQ exercise panel, showing one question
+// at a time. Options are shuffled at render time so the correct answer
+// position is never predictable. The correct answer is identified by
+// matching option text against the "correct" field from the JSON.
+function renderMCQStage() {
+  const mcq     = currentMCQs[currentMCQIndex];
+  const result  = mcqResults[currentMCQIndex];
+  const isFirst = currentMCQIndex === 0;
+  const isLast  = currentMCQIndex === currentMCQs.length - 1;
+
+  // Shuffle options once per question, but restore the same order if the
+  // user navigates back to an already-answered question.
+  // We shuffle by storing a seeded order — simplest approach is to shuffle
+  // on first render and re-render from the result state if already answered.
+  const shuffled = shuffleMCQOptions(mcq.options, currentMCQIndex);
+
+  const optionsHTML = shuffled.map((opt, i) => {
+    let cls = "mcq-option";
+    if (result) {
+      const isSelected = opt === result.selected;
+      const isCorrect  = opt === mcq.correct;
+      if (isSelected && result.correct)  cls += " mcq-correct";
+      if (isSelected && !result.correct) cls += " mcq-incorrect";
+      if (!isSelected && isCorrect && !result.correct) cls += " mcq-reveal";
+    }
+    return `<button class="${cls}" data-option="${escapeHtml(opt)}" ${result ? "disabled" : ""}>${escapeHtml(opt)}</button>`;
+  }).join("");
+
+  const feedbackHTML = result
+    ? result.correct
+      ? `<div class="mcq-feedback mcq-feedback-correct">✓ Correct! 🎉</div>`
+      : `<div class="mcq-feedback mcq-feedback-incorrect">✗ The correct answer is: ${escapeHtml(mcq.correct)}</div>`
+    : "";
+
+  const nextLabel = isLast ? "Comprehension →" : "›";
+
+  document.getElementById("comprehensionList").innerHTML = `
+    <div class="mcq-progress">${currentMCQIndex + 1} / ${currentMCQs.length}</div>
+    <div class="mcq-question">${escapeHtml(mcq.question)}</div>
+    <div class="mcq-options">${optionsHTML}</div>
+    ${feedbackHTML}
+    <div class="mcq-nav">
+      <button class="mcq-nav-btn" id="mcqBack" ${isFirst ? "disabled" : ""}>‹</button>
+      <button class="mcq-nav-btn mcq-nav-skip" id="mcqSkip" title="Skip to questions">›› <span class="mcq-nav-label">Skip to questions</span></button>
+      <button class="mcq-nav-btn mcq-nav-next" id="mcqNext">${nextLabel} <span class="mcq-nav-label">${isLast ? "Comprehension →" : ""}</span></button>
+    </div>`;
+
+  document.getElementById("discussionList").innerHTML = "";
+
+  // Wire MCQ option buttons
+  document.querySelectorAll(".mcq-option").forEach(btn => {
+    btn.addEventListener("click", () => handleMCQAnswer(btn.dataset.option, mcq.correct));
+  });
+
+  document.getElementById("mcqBack").addEventListener("click", () => {
+    if (currentMCQIndex > 0) { currentMCQIndex--; renderMCQStage(); }
+  });
+
+  document.getElementById("mcqSkip").addEventListener("click", () => {
+    currentExerciseStage = "comprehension";
+    renderComprehensionStage(currentQuestions, []);
+  });
+
+  document.getElementById("mcqNext").addEventListener("click", () => {
+    if (isLast) {
+      currentExerciseStage = "comprehension";
+      renderComprehensionStage(currentQuestions, []);
+    } else {
+      currentMCQIndex++;
+      renderMCQStage();
+    }
+  });
+}
+
+// handleMCQAnswer records the user's answer, updates mcqResults, and
+// re-renders the current MCQ to show feedback. The correct answer is
+// identified by text match, not index, so shuffling never breaks it.
+function handleMCQAnswer(selected, correct) {
+  mcqResults[currentMCQIndex] = {
+    selected,
+    correct: selected === correct,
+  };
+  renderMCQStage();
+}
+
+// shuffleMCQOptions returns a deterministically shuffled copy of the options
+// array for a given question index. Using the index as a seed means the same
+// question always shuffles the same way — so navigating back shows the same
+// order the user saw originally.
+function shuffleMCQOptions(options, seed) {
+  const arr = [...options];
+  // Simple seeded shuffle using the question index + option count
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = (seed * 7 + i * 3) % (i + 1);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// renderComprehensionStage renders all 4 comprehension questions with
+// answer textareas and the Check answers button.
+// The discussion questions are rendered in the right-hand column.
+function renderComprehensionStage(comp, disc) {
   document.getElementById("comprehensionList").innerHTML = comp.slice(0, 4).map((q, i) =>
     `<div class="q-item" id="q-item-${i}">
       <span class="q-num">${i + 1}</span>
@@ -822,6 +957,16 @@ function renderQuestions(comp, disc) {
   ).join("");
 
   document.getElementById("checkBtn").addEventListener("click", checkAnswers);
+}
+
+// renderDiscussionStage is a placeholder for the graded discussion
+// response feature. Currently shows the questions with a coming soon notice.
+function renderDiscussionStage(disc) {
+  document.getElementById("comprehensionList").innerHTML =
+    `<div class="coming-soon">Graded discussion responses coming soon.</div>`;
+  document.getElementById("discussionList").innerHTML = disc.slice(0, 4).map((q, i) =>
+    `<div class="q-item"><span class="q-num">${i + 1}</span><span class="q-text">${escapeHtml(q)}</span></div>`
+  ).join("");
 }
 
 function showArticle() {
