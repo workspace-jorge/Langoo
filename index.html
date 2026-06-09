@@ -188,6 +188,29 @@
   .check-btn:hover { background: var(--navy-mid); }
   .check-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .check-hint { font-size: 12px; color: var(--pink-dark); font-weight: 600; }
+/* Multiple choice questions */
+  .mcq-progress { font-size: 11px; font-weight: 700; color: var(--navy-muted); letter-spacing: 0.08em; margin-bottom: 12px; }
+  .mcq-question { font-size: 14px; font-weight: 600; color: var(--navy); line-height: 1.65; margin-bottom: 14px; }
+  .mcq-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .mcq-option { width: 100%; padding: 10px 14px; background: white; color: var(--navy); font-family: var(--sans); font-size: 13px; font-weight: 600; border: 1.5px solid var(--rule); border-radius: var(--radius-sm); cursor: pointer; text-align: left; transition: all 0.15s; }
+  .mcq-option:hover:not([disabled]) { border-color: var(--pink); color: var(--pink); }
+  .mcq-option:disabled { cursor: not-allowed; }
+  .mcq-correct { background: #edfaf3; color: #1a7f4b; border-color: #1a7f4b; }
+  .mcq-incorrect { background: var(--pink-light); color: var(--pink-dark); border-color: var(--pink); }
+  .mcq-reveal { background: #edfaf3; color: #1a7f4b; border-color: #1a7f4b; opacity: 0.7; }
+  .mcq-feedback { font-size: 12px; font-weight: 700; padding: 8px 12px; border-radius: var(--radius-sm); margin-bottom: 12px; }
+  .mcq-feedback-correct { background: #edfaf3; color: #1a7f4b; border-left: 3px solid #1a7f4b; }
+  .mcq-feedback-incorrect { background: var(--pink-light); color: var(--pink-dark); border-left: 3px solid var(--pink); }
+  .mcq-nav { display: flex; align-items: center; gap: 8px; padding-top: 4px; }
+  .mcq-nav-btn { padding: 8px 14px; background: transparent; color: var(--navy); font-family: var(--sans); font-size: 15px; font-weight: 700; border: 1.5px solid var(--rule); border-radius: 50px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
+  .mcq-nav-btn:hover:not([disabled]) { border-color: var(--navy); background: var(--navy); color: white; }
+  .mcq-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .mcq-nav-skip { margin-left: auto; }
+  .mcq-nav-label { font-size: 12px; }
+  .coming-soon { font-size: 13px; color: var(--navy-muted); font-weight: 600; padding: 1rem 0; }
+  @media (max-width: 640px) {
+    .mcq-nav-label { display: none; }
+  }
 </style>
 </head>
 <body>
