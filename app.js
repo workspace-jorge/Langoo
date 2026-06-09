@@ -957,16 +957,22 @@ function renderComprehensionStage(comp, disc) {
         <div class="answer-feedback" id="feedback-${i}" style="display:none"></div>
       </div>
     </div>`
-  ).join("") + `<div class="check-row">
+).join("") + `<div class="check-row">
     <button class="check-btn" id="checkBtn">✓ Check answers</button>
     <span class="check-hint" id="checkHint"></span>
+    <button class="check-btn" id="discussionBtn" style="margin-left:auto">Discussion →</button>
   </div>`;
+
+  document.getElementById("checkBtn").addEventListener("click", checkAnswers);
+  document.getElementById("discussionBtn").addEventListener("click", () => {
+    currentExerciseStage = "discussion";
+    renderDiscussionStage(currentDiscussion);
+  });
 
   // Discussion questions are not shown during the comprehension stage —
   // they appear only when the user advances to the discussion stage.
   // The right column is kept visible but empty for now.
   document.getElementById("discussionList").innerHTML = "";
-  document.getElementById("checkBtn").addEventListener("click", checkAnswers);
 }
 
 // renderDiscussionStage is a placeholder for the graded discussion
@@ -1314,24 +1320,6 @@ async function checkAnswers() {
       el.className     = "answer-feedback " + (result.correct ? "feedback-correct" : "feedback-incorrect");
       el.style.display = "block";
     });
-
-    // Show the discussion button after feedback is displayed.
-    // Only add it if it doesn't already exist (in case checkAnswers is called twice).
-    if (!document.getElementById("discussionBtn")) {
-      const checkRow = document.querySelector(".check-row");
-      if (checkRow) {
-        const btn = document.createElement("button");
-        btn.className = "check-btn";
-        btn.id        = "discussionBtn";
-        btn.textContent = "Discussion questions →";
-        btn.style.marginLeft = "auto";
-        btn.addEventListener("click", () => {
-          currentExerciseStage = "discussion";
-          renderDiscussionStage(currentDiscussion);
-        });
-        checkRow.appendChild(btn);
-      }
-    }
 
   } catch(e) {
     hint.textContent = "Could not check answers: " + e.message;
