@@ -1315,6 +1315,24 @@ async function checkAnswers() {
       el.style.display = "block";
     });
 
+    // Show the discussion button after feedback is displayed.
+    // Only add it if it doesn't already exist (in case checkAnswers is called twice).
+    if (!document.getElementById("discussionBtn")) {
+      const checkRow = document.querySelector(".check-row");
+      if (checkRow) {
+        const btn = document.createElement("button");
+        btn.className = "check-btn";
+        btn.id        = "discussionBtn";
+        btn.textContent = "Discussion questions →";
+        btn.style.marginLeft = "auto";
+        btn.addEventListener("click", () => {
+          currentExerciseStage = "discussion";
+          renderDiscussionStage(currentDiscussion);
+        });
+        checkRow.appendChild(btn);
+      }
+    }
+
   } catch(e) {
     hint.textContent = "Could not check answers: " + e.message;
   } finally {
