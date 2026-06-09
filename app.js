@@ -132,6 +132,18 @@ let mcqResults           = [null, null, null, null];
 let currentMCQs          = []; // full multiple_choice array for the current article
 let currentDiscussion    = []; // discussion questions for the current article
 
+// savedComprehension persists the user's answers and any checked feedback
+// across stage transitions. Captured on navigation away from comprehension,
+// restored on navigation back. Reset with each new article so stale answers
+// never bleed into a fresh article.
+// feedback is null until the user hits "Check answers"; then { text, correct }.
+let savedComprehension = [
+  { answer: "", feedback: null },
+  { answer: "", feedback: null },
+  { answer: "", feedback: null },
+  { answer: "", feedback: null },
+];
+
 // --- Avoidance cache ---
 // Stores titles of previously generated articles per lang+mode+category,
 // so the prompt can instruct the AI to avoid repeating topics.
@@ -774,6 +786,12 @@ function renderArticle(d, lang, levelTag, domainLabel, byline, nextLabel) {
   currentExerciseStage = currentMCQs.length > 0 ? "mcq" : "comprehension";
   currentMCQIndex      = 0;
   mcqResults           = [null, null, null, null];
+  savedComprehension   = [
+    { answer: "", feedback: null },
+    { answer: "", feedback: null },
+    { answer: "", feedback: null },
+    { answer: "", feedback: null },
+  ];
   renderVocab(d.vocab || []);
   document.getElementById("articleBody").innerHTML = (d.paragraphs || []).slice(0, 4).map(p => `<p>${escapeHtml(p)}</p>`).join("");
   renderQuestions(d.comprehension || [], d.discussion || []);
@@ -805,9 +823,15 @@ function renderExternalText(d, lang, title, text, url, notice, linkLabel, tagLab
   currentQuestions = (d.comprehension || []).slice(0, 4);
   currentMCQs      = (d.multiple_choice || []).slice(0, 4);
   currentDiscussion = (d.discussion || []).slice(0, 4);
-  currentExerciseStage = currentMCQs.length > 0 ? "mcq" : "comprehension";
+currentExerciseStage = currentMCQs.length > 0 ? "mcq" : "comprehension";
   currentMCQIndex      = 0;
   mcqResults           = [null, null, null, null];
+  savedComprehension   = [
+    { answer: "", feedback: null },
+    { answer: "", feedback: null },
+    { answer: "", feedback: null },
+    { answer: "", feedback: null },
+  ];
   renderVocab(d.vocab || []);
   const paras = text.split("\n\n").filter(p => p.trim().length > 0).map(p => `<p>${escapeHtml(p.trim())}</p>`).join("");
   document.getElementById("articleBody").innerHTML = paras || `<p>${escapeHtml(text)}</p>`;
@@ -842,16 +866,29 @@ function renderQuestions(comp, disc) {
 // at a time. Options are shuffled at render time so the correct answer
 // position is never predictable. The correct answer is identified by
 // matching option text against the "correct" field from the JSON.
+
+// captureComprehension reads the current textarea values and any visible
+// feedback from the DOM and saves them into savedComprehension in State.
+// Called whenever the user navigates away from the comprehension stage,
+// so nothing is lost if they return.
+function captureComprehension() {
+  [0, 1, 2, 3].forEach(i => {
+    const textarea  = document.getElementById("answer-" + i);
+    const feedbackEl = document.getElementById("feedback-" + i);
+    savedComprehension[i] = {
+      answer: textarea ? textarea.value : "",
+      feedback: (feedbackEl && feedbackEl.style.display !== "none")
+        ? { text: feedbackEl.textContent, correct: feedbackEl.classList.contains("feedback-correct") }
+        : null,
+    };
+  });
+}
 function renderMCQStage() {
   const mcq     = currentMCQs[currentMCQIndex];
   const result  = mcqResults[currentMCQIndex];
   const isFirst = currentMCQIndex === 0;
   const isLast  = currentMCQIndex === currentMCQs.length - 1;
 
-  // Shuffle options once per question, but restore the same order if the
-  // user navigates back to an already-answered question.
-  // We shuffle by storing a seeded order — simplest approach is to shuffle
-  // on first render and re-render from the result state if already answered.
   const shuffled = shuffleMCQOptions(mcq.options, currentMCQIndex);
 
   const optionsHTML = shuffled.map((opt, i) => {
@@ -872,9 +909,6 @@ function renderMCQStage() {
       : `<div class="mcq-feedback mcq-feedback-incorrect">✗ The correct answer is: ${escapeHtml(mcq.correct)}</div>`
     : "";
 
-  // During MCQ stage, hide the right column entirely — it should not
-  // appear until the comprehension stage. The questions-row grid would
-  // otherwise show an empty white card on the right.
   document.querySelector(".questions-row").style.gridTemplateColumns = "1fr";
   document.getElementById("discussionList").closest(".questions-block").style.display = "none";
 
@@ -889,7 +923,6 @@ function renderMCQStage() {
       <button class="mcq-nav-btn mcq-nav-next" id="mcqNext">› <span class="mcq-nav-label">${isLast ? "Comprehension →" : ""}</span></button>
     </div>`;
 
-  // Wire MCQ option buttons
   document.querySelectorAll(".mcq-option").forEach(btn => {
     btn.addEventListener("click", () => handleMCQAnswer(btn.dataset.option, mcq.correct));
   });
@@ -900,7 +933,7 @@ function renderMCQStage() {
 
   document.getElementById("mcqSkip").addEventListener("click", () => {
     currentExerciseStage = "comprehension";
-  renderComprehensionStage(currentQuestions, currentDiscussion);
+    renderComprehensionStage(currentQuestions, currentDiscussion);
   });
 
   document.getElementById("mcqNext").addEventListener("click", () => {
@@ -931,7 +964,6 @@ function handleMCQAnswer(selected, correct) {
 // order the user saw originally.
 function shuffleMCQOptions(options, seed) {
   const arr = [...options];
-  // Simple seeded shuffle using the question index + option count
   for (let i = arr.length - 1; i > 0; i--) {
     const j = (seed * 7 + i * 3) % (i + 1);
     [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -940,13 +972,18 @@ function shuffleMCQOptions(options, seed) {
 }
 
 // renderComprehensionStage renders all 4 comprehension questions with
-// answer textareas and the Check answers button.
-// The discussion questions are rendered in the right-hand column.
+// answer textareas and navigation buttons.
+// Restores any previously saved answers and feedback if the user has
+// navigated back from the discussion stage.
 function renderComprehensionStage(comp, disc) {
-  // Right column hidden during comprehension stage — it will appear when the discussion stage is built.
   document.querySelector(".questions-row").style.gridTemplateColumns = "1fr";
   document.getElementById("discussionList").closest(".questions-block").style.display = "none";
 
+  // Build the back-to-MCQ button only if this article has MCQ questions.
+  // An article without MCQs has no MCQ stage to go back to.
+  const backToMCQBtn = currentMCQs.length > 0
+    ? `<button class="check-btn" id="backToMCQBtn">← MCQ</button>`
+    : "";
 
   document.getElementById("comprehensionList").innerHTML = comp.slice(0, 4).map((q, i) =>
     `<div class="q-item" id="q-item-${i}">
@@ -957,32 +994,68 @@ function renderComprehensionStage(comp, disc) {
         <div class="answer-feedback" id="feedback-${i}" style="display:none"></div>
       </div>
     </div>`
-).join("") + `<div class="check-row">
+  ).join("") + `<div class="check-row">
+    ${backToMCQBtn}
     <button class="check-btn" id="checkBtn">✓ Check answers</button>
     <span class="check-hint" id="checkHint"></span>
     <button class="check-btn" id="discussionBtn" style="margin-left:auto">Discussion →</button>
   </div>`;
 
+  // Restore saved answers and feedback from State.
+  // This runs after innerHTML is set so the elements exist in the DOM.
+  [0, 1, 2, 3].forEach(i => {
+    const saved      = savedComprehension[i];
+    const textarea   = document.getElementById("answer-" + i);
+    const feedbackEl = document.getElementById("feedback-" + i);
+    if (textarea)   textarea.value = saved.answer;
+    if (feedbackEl && saved.feedback) {
+      feedbackEl.textContent  = saved.feedback.text;
+      feedbackEl.className    = "answer-feedback " + (saved.feedback.correct ? "feedback-correct" : "feedback-incorrect");
+      feedbackEl.style.display = "block";
+    }
+  });
+
+  if (currentMCQs.length > 0) {
+    document.getElementById("backToMCQBtn").addEventListener("click", () => {
+      captureComprehension();
+      currentExerciseStage = "mcq";
+      // Return to the last MCQ question (most natural landing point when going back).
+      currentMCQIndex = currentMCQs.length - 1;
+      renderMCQStage();
+    });
+  }
+
   document.getElementById("checkBtn").addEventListener("click", checkAnswers);
+
   document.getElementById("discussionBtn").addEventListener("click", () => {
+    captureComprehension();
     currentExerciseStage = "discussion";
     renderDiscussionStage(currentDiscussion);
   });
 
-  // Discussion questions are not shown during the comprehension stage —
-  // they appear only when the user advances to the discussion stage.
-  // The right column is kept visible but empty for now.
   document.getElementById("discussionList").innerHTML = "";
 }
 
-// renderDiscussionStage is a placeholder for the graded discussion
-// response feature. Currently shows the questions with a coming soon notice.
+// renderDiscussionStage shows the discussion questions and a back button
+// to return to the comprehension stage. Left column is a placeholder for
+// the graded discussion response feature (coming soon).
 function renderDiscussionStage(disc) {
+  // Restore both columns — discussion questions go in the right column.
+  document.querySelector(".questions-row").style.gridTemplateColumns = "";
+  document.getElementById("discussionList").closest(".questions-block").style.display = "";
+
   document.getElementById("comprehensionList").innerHTML =
-    `<div class="coming-soon">Graded discussion responses coming soon.</div>`;
+    `<button class="check-btn" id="backToCompBtn" style="margin-bottom:1rem">← Comprehension</button>
+     <div class="coming-soon">Graded discussion responses coming soon.</div>`;
+
   document.getElementById("discussionList").innerHTML = disc.slice(0, 4).map((q, i) =>
     `<div class="q-item"><span class="q-num">${i + 1}</span><span class="q-text">${escapeHtml(q)}</span></div>`
   ).join("");
+
+  document.getElementById("backToCompBtn").addEventListener("click", () => {
+    currentExerciseStage = "comprehension";
+    renderComprehensionStage(currentQuestions, currentDiscussion);
+  });
 }
 
 function showArticle() {
