@@ -1040,13 +1040,15 @@ function renderComprehensionStage(comp, disc) {
 // to return to the comprehension stage. Left column is a placeholder for
 // the graded discussion response feature (coming soon).
 function renderDiscussionStage(disc) {
-  // Keep single-column layout — left column has nothing to show yet.
-  // When graded discussion responses are built, restore the grid here.
-  document.querySelector(".questions-row").style.gridTemplateColumns = "1fr";
-  document.getElementById("discussionList").closest(".questions-block").style.display = "";
+  // Single column — left block has nothing to show during placeholder phase.
+  const row    = document.querySelector(".questions-row");
+  const blocks = row.querySelectorAll(".questions-block");
+  // blocks[0] = comprehension (left), blocks[1] = discussion (right)
+  row.style.gridTemplateColumns = "1fr";
+  blocks[0].style.display = "none";
+  blocks[1].style.display = "";
 
-  // Left column hidden — all content goes in the right (discussionList) column.
-document.getElementById("comprehensionList").closest(".questions-block").style.display = "none";
+  document.getElementById("comprehensionList").innerHTML = "";
 
   document.getElementById("discussionList").innerHTML =
     `<button class="check-btn" id="backToCompBtn" style="margin-bottom:1rem">← Comprehension</button>` +
@@ -1056,6 +1058,8 @@ document.getElementById("comprehensionList").closest(".questions-block").style.d
     `<div class="coming-soon" style="margin-top:1rem">Graded discussion responses coming soon.</div>`;
 
   document.getElementById("backToCompBtn").addEventListener("click", () => {
+    // Restore both blocks before going back — comprehension stage manages its own visibility.
+    blocks[0].style.display = "";
     currentExerciseStage = "comprehension";
     renderComprehensionStage(currentQuestions, currentDiscussion);
   });
