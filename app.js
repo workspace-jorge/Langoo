@@ -228,6 +228,7 @@ const LANGUAGES = {
     discussionSoon:"Bewertete Diskussionsantworten — demnächst verfügbar.",
     errorNoAnswer:"Bitte schreibe mindestens eine Antwort.",
     errorCheckFailed:"Antworten konnten nicht geprüft werden: ",
+    btnCheckDiscussion:"✓ Antworten einreichen", discussionPlaceholder:"Deine Gedanken…",
     discussionLevel1:"⚙️ Ausbaufähig", discussionLevel2:"👍 Solide",
     discussionLevel3:"💪 Stark", discussionLevel4:"💡 Interessant!"
   },
@@ -268,6 +269,7 @@ const LANGUAGES = {
     discussionSoon:"Graded discussion responses coming soon.",
     errorNoAnswer:"Please write at least one answer.",
     errorCheckFailed:"Could not check answers: ",
+    btnCheckDiscussion:"✓ Submit responses", discussionPlaceholder:"Your thoughts…",
     discussionLevel1:"⚙️ Needs work", discussionLevel2:"👍 OK",
     discussionLevel3:"💪 Strong", discussionLevel4:"💡 Insightful"
   },
@@ -308,6 +310,7 @@ const LANGUAGES = {
     discussionSoon:"Réponses de discussion notées — bientôt disponibles.",
     errorNoAnswer:"Veuillez écrire au moins une réponse.",
     errorCheckFailed:"Impossible de vérifier les réponses : ",
+    btnCheckDiscussion:"✓ Soumettre les réponses", discussionPlaceholder:"Vos réflexions…",
     discussionLevel1:"⚙️ À améliorer", discussionLevel2:"👍 Correct",
     discussionLevel3:"💪 Solide", discussionLevel4:"💡 Intéressant !"
   },
@@ -348,6 +351,7 @@ const LANGUAGES = {
     discussionSoon:"Respuestas de debate calificadas — próximamente.",
     errorNoAnswer:"Por favor escribe al menos una respuesta.",
     errorCheckFailed:"No se pudieron comprobar las respuestas: ",
+    btnCheckDiscussion:"✓ Enviar respuestas", discussionPlaceholder:"Tus reflexiones…",
     discussionLevel1:"⚙️ Mejorable", discussionLevel2:"👍 Bien",
     discussionLevel3:"💪 Sólido", discussionLevel4:"💡 ¡Interesante!"
   },
@@ -388,6 +392,7 @@ const LANGUAGES = {
     discussionSoon:"Risposte di discussione valutate — prossimamente.",
     errorNoAnswer:"Per favore scrivi almeno una risposta.",
     errorCheckFailed:"Impossibile controllare le risposte: ",
+    btnCheckDiscussion:"✓ Invia le risposte", discussionPlaceholder:"I tuoi pensieri…",
     discussionLevel1:"⚙️ Da migliorare", discussionLevel2:"👍 OK",
     discussionLevel3:"💪 Solido", discussionLevel4:"💡 Interessante!"
   },
@@ -428,6 +433,7 @@ const LANGUAGES = {
     discussionSoon:"Respostas de discussão corrigidas — em breve.",
     errorNoAnswer:"Por favor escreva pelo menos uma resposta.",
     errorCheckFailed:"Não foi possível verificar as respostas: ",
+    btnCheckDiscussion:"✓ Enviar respostas", discussionPlaceholder:"Sua opinião…",
     discussionLevel1:"⚙️ A melhorar", discussionLevel2:"👍 OK",
     discussionLevel3:"💪 Sólido", discussionLevel4:"💡 Interessante!"
   },
@@ -468,6 +474,7 @@ const LANGUAGES = {
     discussionSoon:"Beoordeelde discussieantwoorden — binnenkort beschikbaar.",
     errorNoAnswer:"Schrijf alstublieft ten minste één antwoord.",
     errorCheckFailed:"Antwoorden konden niet worden gecontroleerd: ",
+    btnCheckDiscussion:"✓ Antwoorden indienen", discussionPlaceholder:"Jouw gedachten…",
     discussionLevel1:"⚙️ Kan beter", discussionLevel2:"👍 Oké",
     discussionLevel3:"💪 Sterk", discussionLevel4:"💡 Interessant!"
   }
