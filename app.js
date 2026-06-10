@@ -210,7 +210,14 @@ const LANGUAGES = {
     wikiCategories:{ "Philosophie":"Philosophie","Geschichte":"Geschichte","Wissenschaft":"Wissenschaft","Gesellschaft":"Gesellschaft","Kunst":"Kunst","Psychologie":"Psychologie","Geographie":"Geographie" },
     litGenres:{ "fiction":"Fiktion","poetry":"Gedichte","drama":"Drama","adventure":"Abenteuer","philosophy":"Philosophie" },
     newsCategories:{ Politik:"Politik",Wirtschaft:"Wirtschaft",Wissenschaft:"Wissenschaft",Technologie:"Technologie",Gesellschaft:"Gesellschaft",Kultur:"Kultur",Umwelt:"Umwelt",Gesundheit:"Gesundheit",Sport:"Sport",Schule:"Schule",Lifestyle:"Lifestyle",Kurioses:"Kurioses" },
-    readsCategories:{ Philosophie:"Philosophie",Geschichte:"Geschichte & Kuriositäten",Gesellschaft:"Gesellschaft",Wissenschaft:"Wissenschaft",Psychologie:"Psychologie",Kunst:"Kunst & Architektur",Mythologie:"Mythologie" }
+    readsCategories:{ Philosophie:"Philosophie",Geschichte:"Geschichte & Kuriositäten",Gesellschaft:"Gesellschaft",Wissenschaft:"Wissenschaft",Psychologie:"Psychologie",Kunst:"Kunst & Architektur",Mythologie:"Mythologie" },
+    btnBackMCQ:"← Multiple Choice", btnCheckAnswers:"✓ Antworten prüfen",
+    btnDiscussion:"Diskussion →", btnBackComprehension:"← Verständnisfragen",
+    btnSkipMCQ:"Zu den Verständnisfragen", btnComprehension:"Verständnisfragen →",
+    mcqCorrect:"✓ Richtig! 🎉", mcqIncorrect:"✗ Die richtige Antwort ist: ",
+    discussionSoon:"Bewertete Diskussionsantworten — demnächst verfügbar.",
+    errorNoAnswer:"Bitte schreibe mindestens eine Antwort.",
+    errorCheckFailed:"Antworten konnten nicht geprüft werden: "
   },
   en: {
     name:"English", flag:"🇬🇧", targetLanguage:"English", htmlLang:"en",
@@ -241,7 +248,14 @@ const LANGUAGES = {
     wikiCategories:{ "Philosophy":"Philosophy","History":"History","Science":"Science","Society":"Society","Art":"Art","Psychology":"Psychology","Geography":"Geography" },
     litGenres:{ "fiction":"Fiction","poetry":"Poetry","drama":"Drama","adventure":"Adventure","philosophy":"Philosophy" },
     newsCategories:{ Politik:"Politics",Wirtschaft:"Economics",Wissenschaft:"Science",Technologie:"Technology",Gesellschaft:"Society",Kultur:"Culture",Umwelt:"Environment",Gesundheit:"Health",Sport:"Sport",Schule:"Education",Lifestyle:"Lifestyle",Kurioses:"Curiosities" },
-    readsCategories:{ Philosophie:"Philosophy",Geschichte:"Historical Curiosities",Gesellschaft:"Society",Wissenschaft:"Science",Psychologie:"Psychology",Kunst:"Art & Architecture",Mythologie:"Mythology" }
+    readsCategories:{ Philosophie:"Philosophy",Geschichte:"Historical Curiosities",Gesellschaft:"Society",Wissenschaft:"Science",Psychologie:"Psychology",Kunst:"Art & Architecture",Mythologie:"Mythology" },
+    btnBackMCQ:"← MCQ", btnCheckAnswers:"✓ Check answers",
+    btnDiscussion:"Discussion →", btnBackComprehension:"← Comprehension",
+    btnSkipMCQ:"Skip to comprehension", btnComprehension:"Comprehension →",
+    mcqCorrect:"✓ Correct! 🎉", mcqIncorrect:"✗ The correct answer is: ",
+    discussionSoon:"Graded discussion responses coming soon.",
+    errorNoAnswer:"Please write at least one answer.",
+    errorCheckFailed:"Could not check answers: "
   },
   fr: {
     name:"Français", flag:"🇫🇷", targetLanguage:"French", htmlLang:"fr",
@@ -272,7 +286,14 @@ const LANGUAGES = {
     wikiCategories:{ "Philosophie":"Philosophie","Histoire":"Histoire","Science":"Science","Société":"Société","Art":"Art","Psychologie":"Psychologie","Géographie":"Géographie" },
     litGenres:{ "fiction":"Fiction","poetry":"Poésie","drama":"Théâtre","adventure":"Aventure","philosophy":"Philosophie" },
     newsCategories:{ Politik:"Politique",Wirtschaft:"Économie",Wissenschaft:"Sciences",Technologie:"Technologie",Gesellschaft:"Société",Kultur:"Culture",Umwelt:"Environnement",Gesundheit:"Santé",Sport:"Sport",Schule:"Éducation",Lifestyle:"Lifestyle",Kurioses:"Insolite" },
-    readsCategories:{ Philosophie:"Philosophie",Geschichte:"Curiosités historiques",Gesellschaft:"Société",Wissenschaft:"Sciences",Psychologie:"Psychologie",Kunst:"Art & Architecture",Mythologie:"Mythologie" }
+    readsCategories:{ Philosophie:"Philosophie",Geschichte:"Curiosités historiques",Gesellschaft:"Société",Wissenschaft:"Sciences",Psychologie:"Psychologie",Kunst:"Art & Architecture",Mythologie:"Mythologie" },
+    btnBackMCQ:"← QCM", btnCheckAnswers:"✓ Vérifier les réponses",
+    btnDiscussion:"Discussion →", btnBackComprehension:"← Compréhension",
+    btnSkipMCQ:"Passer à la compréhension", btnComprehension:"Compréhension →",
+    mcqCorrect:"✓ Correct ! 🎉", mcqIncorrect:"✗ La bonne réponse est : ",
+    discussionSoon:"Réponses de discussion notées — bientôt disponibles.",
+    errorNoAnswer:"Veuillez écrire au moins une réponse.",
+    errorCheckFailed:"Impossible de vérifier les réponses : "
   },
   es: {
     name:"Español", flag:"🇪🇸", targetLanguage:"Spanish", htmlLang:"es",
@@ -303,7 +324,14 @@ const LANGUAGES = {
     wikiCategories:{ "Filosofía":"Filosofía","Historia":"Historia","Ciencia":"Ciencia","Sociedad":"Sociedad","Arte":"Arte","Psicología":"Psicología","Geografía":"Geografía" },
     litGenres:{ "fiction":"Ficción","poetry":"Poesía","drama":"Teatro","adventure":"Aventura","philosophy":"Filosofía" },
     newsCategories:{ Politik:"Política",Wirtschaft:"Economía",Wissenschaft:"Ciencia",Technologie:"Tecnología",Gesellschaft:"Sociedad",Kultur:"Cultura",Umwelt:"Medio ambiente",Gesundheit:"Salud",Sport:"Deporte",Schule:"Educación",Lifestyle:"Estilo de vida",Kurioses:"Curiosidades" },
-    readsCategories:{ Philosophie:"Filosofía",Geschichte:"Curiosidades históricas",Gesellschaft:"Sociedad",Wissenschaft:"Ciencia",Psychologie:"Psicología",Kunst:"Arte & Arquitectura",Mythologie:"Mitología" }
+    readsCategories:{ Philosophie:"Filosofía",Geschichte:"Curiosidades históricas",Gesellschaft:"Sociedad",Wissenschaft:"Ciencia",Psychologie:"Psicología",Kunst:"Arte & Arquitectura",Mythologie:"Mitología" },
+    btnBackMCQ:"← Opción múltiple", btnCheckAnswers:"✓ Comprobar respuestas",
+    btnDiscussion:"Debate →", btnBackComprehension:"← Comprensión",
+    btnSkipMCQ:"Pasar a la comprensión", btnComprehension:"Comprensión →",
+    mcqCorrect:"✓ ¡Correcto! 🎉", mcqIncorrect:"✗ La respuesta correcta es: ",
+    discussionSoon:"Respuestas de debate calificadas — próximamente.",
+    errorNoAnswer:"Por favor escribe al menos una respuesta.",
+    errorCheckFailed:"No se pudieron comprobar las respuestas: "
   },
   it: {
     name:"Italiano", flag:"🇮🇹", targetLanguage:"Italian", htmlLang:"it",
@@ -334,7 +362,14 @@ const LANGUAGES = {
     wikiCategories:{ "Filosofia":"Filosofia","Storia":"Storia","Scienza":"Scienza","Società":"Società","Arte":"Arte","Psicologia":"Psicologia","Geografia":"Geografia" },
     litGenres:{ "fiction":"Narrativa","poetry":"Poesia","drama":"Teatro","adventure":"Avventura","philosophy":"Filosofia" },
     newsCategories:{ Politik:"Politica",Wirtschaft:"Economia",Wissenschaft:"Scienza",Technologie:"Tecnologia",Gesellschaft:"Società",Kultur:"Cultura",Umwelt:"Ambiente",Gesundheit:"Salute",Sport:"Sport",Schule:"Istruzione",Lifestyle:"Lifestyle",Kurioses:"Curiosità" },
-    readsCategories:{ Philosophie:"Filosofia",Geschichte:"Curiosità storiche",Gesellschaft:"Società",Wissenschaft:"Scienza",Psychologie:"Psicologia",Kunst:"Arte & Architettura",Mythologie:"Mitologia" }
+    readsCategories:{ Philosophie:"Filosofia",Geschichte:"Curiosità storiche",Gesellschaft:"Società",Wissenschaft:"Scienza",Psychologie:"Psicologia",Kunst:"Arte & Architettura",Mythologie:"Mitologia" },
+    btnBackMCQ:"← Scelta multipla", btnCheckAnswers:"✓ Controlla le risposte",
+    btnDiscussion:"Discussione →", btnBackComprehension:"← Comprensione",
+    btnSkipMCQ:"Passa alla comprensione", btnComprehension:"Comprensione →",
+    mcqCorrect:"✓ Corretto! 🎉", mcqIncorrect:"✗ La risposta corretta è: ",
+    discussionSoon:"Risposte di discussione valutate — prossimamente.",
+    errorNoAnswer:"Per favore scrivi almeno una risposta.",
+    errorCheckFailed:"Impossibile controllare le risposte: "
   },
   pt: {
     name:"Português", flag:"🇧🇷", targetLanguage:"Brazilian Portuguese", htmlLang:"pt",
@@ -365,7 +400,14 @@ const LANGUAGES = {
     wikiCategories:{ "Filosofia":"Filosofia","História":"História","Ciência":"Ciência","Sociedade":"Sociedade","Arte":"Arte","Psicologia":"Psicologia","Geografia":"Geografia" },
     litGenres:{ "fiction":"Ficção","poetry":"Poesia","drama":"Teatro","adventure":"Aventura","philosophy":"Filosofia" },
     newsCategories:{ Politik:"Política",Wirtschaft:"Economia",Wissenschaft:"Ciência",Technologie:"Tecnologia",Gesellschaft:"Sociedade",Kultur:"Cultura",Umwelt:"Meio ambiente",Gesundheit:"Saúde",Sport:"Esporte",Schule:"Educação",Lifestyle:"Lifestyle",Kurioses:"Curiosidades" },
-    readsCategories:{ Philosophie:"Filosofia",Geschichte:"Curiosidades históricas",Gesellschaft:"Sociedade",Wissenschaft:"Ciência",Psychologie:"Psicologia",Kunst:"Arte & Arquitetura",Mythologie:"Mitologia" }
+    readsCategories:{ Philosophie:"Filosofia",Geschichte:"Curiosidades históricas",Gesellschaft:"Sociedade",Wissenschaft:"Ciência",Psychologie:"Psicologia",Kunst:"Arte & Arquitetura",Mythologie:"Mitologia" },
+    btnBackMCQ:"← Múltipla escolha", btnCheckAnswers:"✓ Verificar respostas",
+    btnDiscussion:"Discussão →", btnBackComprehension:"← Compreensão",
+    btnSkipMCQ:"Ir para a compreensão", btnComprehension:"Compreensão →",
+    mcqCorrect:"✓ Correto! 🎉", mcqIncorrect:"✗ A resposta correta é: ",
+    discussionSoon:"Respostas de discussão corrigidas — em breve.",
+    errorNoAnswer:"Por favor escreva pelo menos uma resposta.",
+    errorCheckFailed:"Não foi possível verificar as respostas: "
   },
   nl: {
     name:"Nederlands", flag:"🇳🇱", targetLanguage:"Dutch", htmlLang:"nl",
@@ -396,7 +438,14 @@ const LANGUAGES = {
     wikiCategories:{ "Filosofie":"Filosofie","Geschiedenis":"Geschiedenis","Wetenschap":"Wetenschap","Samenleving":"Samenleving","Kunst":"Kunst","Psychologie":"Psychologie","Geografie":"Geografie" },
     litGenres:{ "fiction":"Fictie","poetry":"Poëzie","drama":"Toneel","adventure":"Avontuur","philosophy":"Filosofie" },
     newsCategories:{ Politik:"Politiek",Wirtschaft:"Economie",Wissenschaft:"Wetenschap",Technologie:"Technologie",Gesellschaft:"Samenleving",Kultur:"Cultuur",Umwelt:"Milieu",Gesundheit:"Gezondheid",Sport:"Sport",Schule:"Onderwijs",Lifestyle:"Lifestyle",Kurioses:"Curiosa" },
-    readsCategories:{ Philosophie:"Filosofie",Geschichte:"Historische curiosa",Gesellschaft:"Samenleving",Wissenschaft:"Wetenschap",Psychologie:"Psychologie",Kunst:"Kunst & Architectuur",Mythologie:"Mythologie" }
+    readsCategories:{ Philosophie:"Filosofie",Geschichte:"Historische curiosa",Gesellschaft:"Samenleving",Wissenschaft:"Wetenschap",Psychologie:"Psychologie",Kunst:"Kunst & Architectuur",Mythologie:"Mythologie" },
+    btnBackMCQ:"← Meerkeuzevragen", btnCheckAnswers:"✓ Antwoorden controleren",
+    btnDiscussion:"Discussie →", btnBackComprehension:"← Begrip",
+    btnSkipMCQ:"Naar de begripssvragen", btnComprehension:"Begripssvragen →",
+    mcqCorrect:"✓ Correct! 🎉", mcqIncorrect:"✗ Het juiste antwoord is: ",
+    discussionSoon:"Beoordeelde discussieantwoorden — binnenkort beschikbaar.",
+    errorNoAnswer:"Schrijf alstublieft ten minste één antwoord.",
+    errorCheckFailed:"Antwoorden konden niet worden gecontroleerd: "
   }
 };
 
@@ -903,15 +952,15 @@ function renderMCQStage() {
     return `<button class="${cls}" data-option="${escapeHtml(opt)}" ${result ? "disabled" : ""}>${escapeHtml(opt)}</button>`;
   }).join("");
 
+const lang = LANGUAGES[currentLang];
   const feedbackHTML = result
     ? result.correct
-      ? `<div class="mcq-feedback mcq-feedback-correct">✓ Correct! 🎉</div>`
-      : `<div class="mcq-feedback mcq-feedback-incorrect">✗ The correct answer is: ${escapeHtml(mcq.correct)}</div>`
+      ? `<div class="mcq-feedback mcq-feedback-correct">${escapeHtml(lang.mcqCorrect)}</div>`
+      : `<div class="mcq-feedback mcq-feedback-incorrect">${escapeHtml(lang.mcqIncorrect)}${escapeHtml(mcq.correct)}</div>`
     : "";
 
   document.querySelector(".questions-row").style.gridTemplateColumns = "1fr";
   document.getElementById("discussionList").closest(".questions-block").style.display = "none";
-
   document.getElementById("comprehensionList").innerHTML = `
     <div class="mcq-progress">${currentMCQIndex + 1} / ${currentMCQs.length}</div>
     <div class="mcq-question">${escapeHtml(mcq.question)}</div>
@@ -919,8 +968,8 @@ function renderMCQStage() {
     ${feedbackHTML}
     <div class="mcq-nav">
       <button class="mcq-nav-btn" id="mcqBack" ${isFirst ? "disabled" : ""}>‹</button>
-      <button class="mcq-nav-btn mcq-nav-skip" id="mcqSkip" title="Skip to questions">›› <span class="mcq-nav-label">Skip to questions</span></button>
-      <button class="mcq-nav-btn mcq-nav-next" id="mcqNext">› <span class="mcq-nav-label">${isLast ? "Comprehension →" : ""}</span></button>
+      <button class="mcq-nav-btn mcq-nav-skip" id="mcqSkip" title="${escapeHtml(lang.btnSkipMCQ)}">›› <span class="mcq-nav-label">${escapeHtml(lang.btnSkipMCQ)}</span></button>
+      <button class="mcq-nav-btn mcq-nav-next" id="mcqNext">› <span class="mcq-nav-label">${isLast ? escapeHtml(lang.btnComprehension) : ""}</span></button>
     </div>`;
 
   document.querySelectorAll(".mcq-option").forEach(btn => {
@@ -981,8 +1030,9 @@ function renderComprehensionStage(comp, disc) {
 
   // Build the back-to-MCQ button only if this article has MCQ questions.
   // An article without MCQs has no MCQ stage to go back to.
+  const lang = LANGUAGES[currentLang];
   const backToMCQBtn = currentMCQs.length > 0
-    ? `<button class="check-btn" id="backToMCQBtn">← MCQ</button>`
+    ? `<button class="check-btn" id="backToMCQBtn">${escapeHtml(lang.btnBackMCQ)}</button>`
     : "";
 
   document.getElementById("comprehensionList").innerHTML = comp.slice(0, 4).map((q, i) =>
@@ -996,9 +1046,9 @@ function renderComprehensionStage(comp, disc) {
     </div>`
   ).join("") + `<div class="check-row">
     ${backToMCQBtn}
-    <button class="check-btn" id="checkBtn">✓ Check answers</button>
+    <button class="check-btn" id="checkBtn">${escapeHtml(lang.btnCheckAnswers)}</button>
     <span class="check-hint" id="checkHint"></span>
-    <button class="check-btn" id="discussionBtn" style="margin-left:auto">Discussion →</button>
+    <button class="check-btn" id="discussionBtn" style="margin-left:auto">${escapeHtml(lang.btnDiscussion)}</button>
   </div>`;
 
   // Restore saved answers and feedback from State.
@@ -1050,12 +1100,14 @@ function renderDiscussionStage(disc) {
 
   document.getElementById("comprehensionList").innerHTML = "";
 
+  const lang = LANGUAGES[currentLang];
   document.getElementById("discussionList").innerHTML =
-    `<button class="check-btn" id="backToCompBtn" style="margin-bottom:1rem">← Comprehension</button>` +
+    `<button class="check-btn" id="backToCompBtn" style="margin-bottom:1rem">${escapeHtml(lang.btnBackComprehension)}</button>` +
     disc.slice(0, 4).map((q, i) =>
       `<div class="q-item"><span class="q-num">${i + 1}</span><span class="q-text">${escapeHtml(q)}</span></div>`
     ).join("") +
-    `<div class="coming-soon" style="margin-top:1rem">Graded discussion responses coming soon.</div>`;
+    `<div class="coming-soon" style="margin-top:1rem">${escapeHtml(lang.discussionSoon)}</div>`;
+
 
   document.getElementById("backToCompBtn").addEventListener("click", () => {
     // Restore both blocks before going back — comprehension stage manages its own visibility.
@@ -1365,7 +1417,7 @@ async function checkAnswers() {
   });
 
   if (answers.every(a => a === "")) {
-    hint.textContent = lang.noText || "Please write at least one answer.";
+    hint.textContent = lang.errorNoAnswer;
     return;
   }
 
@@ -1401,11 +1453,11 @@ async function checkAnswers() {
       el.style.display = "block";
     });
 
-  } catch(e) {
-    hint.textContent = "Could not check answers: " + e.message;
+} catch(e) {
+    hint.textContent = lang.errorCheckFailed + e.message;
   } finally {
     btn.disabled    = false;
-    btn.textContent = "✓ Check answers";
+    btn.textContent = LANGUAGES[currentLang].btnCheckAnswers;
   }
 }
 
