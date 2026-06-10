@@ -1046,7 +1046,7 @@ function renderDiscussionStage(disc) {
   document.getElementById("discussionList").closest(".questions-block").style.display = "";
 
   // Left column hidden — all content goes in the right (discussionList) column.
-  document.getElementById("comprehensionList").innerHTML = "";
+document.getElementById("comprehensionList").closest(".questions-block").style.display = "none";
 
   document.getElementById("discussionList").innerHTML =
     `<button class="check-btn" id="backToCompBtn" style="margin-bottom:1rem">← Comprehension</button>` +
