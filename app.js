@@ -144,6 +144,16 @@ let savedComprehension = [
   { answer: "", feedback: null },
 ];
 
+// savedDiscussion mirrors savedComprehension for the discussion stage.
+// Captured when navigating back to comprehension, restored on return.
+// feedback is null until the user submits; then { level, feedback }.
+let savedDiscussion = [
+  { answer: "", feedback: null },
+  { answer: "", feedback: null },
+  { answer: "", feedback: null },
+  { answer: "", feedback: null },
+];
+
 // --- Avoidance cache ---
 // Stores titles of previously generated articles per lang+mode+category,
 // so the prompt can instruct the AI to avoid repeating topics.
@@ -217,7 +227,9 @@ const LANGUAGES = {
     mcqCorrect:"✓ Richtig! 🎉", mcqIncorrect:"✗ Die richtige Antwort ist: ",
     discussionSoon:"Bewertete Diskussionsantworten — demnächst verfügbar.",
     errorNoAnswer:"Bitte schreibe mindestens eine Antwort.",
-    errorCheckFailed:"Antworten konnten nicht geprüft werden: "
+    errorCheckFailed:"Antworten konnten nicht geprüft werden: ",
+    discussionLevel1:"⚙️ Ausbaufähig", discussionLevel2:"👍 Solide",
+    discussionLevel3:"💪 Stark", discussionLevel4:"💡 Interessant!"
   },
   en: {
     name:"English", flag:"🇬🇧", targetLanguage:"English", htmlLang:"en",
@@ -255,7 +267,9 @@ const LANGUAGES = {
     mcqCorrect:"✓ Correct! 🎉", mcqIncorrect:"✗ The correct answer is: ",
     discussionSoon:"Graded discussion responses coming soon.",
     errorNoAnswer:"Please write at least one answer.",
-    errorCheckFailed:"Could not check answers: "
+    errorCheckFailed:"Could not check answers: ",
+    discussionLevel1:"⚙️ Needs work", discussionLevel2:"👍 OK",
+    discussionLevel3:"💪 Strong", discussionLevel4:"💡 Insightful"
   },
   fr: {
     name:"Français", flag:"🇫🇷", targetLanguage:"French", htmlLang:"fr",
@@ -293,7 +307,9 @@ const LANGUAGES = {
     mcqCorrect:"✓ Correct ! 🎉", mcqIncorrect:"✗ La bonne réponse est : ",
     discussionSoon:"Réponses de discussion notées — bientôt disponibles.",
     errorNoAnswer:"Veuillez écrire au moins une réponse.",
-    errorCheckFailed:"Impossible de vérifier les réponses : "
+    errorCheckFailed:"Impossible de vérifier les réponses : ",
+    discussionLevel1:"⚙️ À améliorer", discussionLevel2:"👍 Correct",
+    discussionLevel3:"💪 Solide", discussionLevel4:"💡 Intéressant !"
   },
   es: {
     name:"Español", flag:"🇪🇸", targetLanguage:"Spanish", htmlLang:"es",
@@ -331,7 +347,9 @@ const LANGUAGES = {
     mcqCorrect:"✓ ¡Correcto! 🎉", mcqIncorrect:"✗ La respuesta correcta es: ",
     discussionSoon:"Respuestas de debate calificadas — próximamente.",
     errorNoAnswer:"Por favor escribe al menos una respuesta.",
-    errorCheckFailed:"No se pudieron comprobar las respuestas: "
+    errorCheckFailed:"No se pudieron comprobar las respuestas: ",
+    discussionLevel1:"⚙️ Mejorable", discussionLevel2:"👍 Bien",
+    discussionLevel3:"💪 Sólido", discussionLevel4:"💡 ¡Interesante!"
   },
   it: {
     name:"Italiano", flag:"🇮🇹", targetLanguage:"Italian", htmlLang:"it",
@@ -369,7 +387,9 @@ const LANGUAGES = {
     mcqCorrect:"✓ Corretto! 🎉", mcqIncorrect:"✗ La risposta corretta è: ",
     discussionSoon:"Risposte di discussione valutate — prossimamente.",
     errorNoAnswer:"Per favore scrivi almeno una risposta.",
-    errorCheckFailed:"Impossibile controllare le risposte: "
+    errorCheckFailed:"Impossibile controllare le risposte: ",
+    discussionLevel1:"⚙️ Da migliorare", discussionLevel2:"👍 OK",
+    discussionLevel3:"💪 Solido", discussionLevel4:"💡 Interessante!"
   },
   pt: {
     name:"Português", flag:"🇧🇷", targetLanguage:"Brazilian Portuguese", htmlLang:"pt",
@@ -407,7 +427,9 @@ const LANGUAGES = {
     mcqCorrect:"✓ Correto! 🎉", mcqIncorrect:"✗ A resposta correta é: ",
     discussionSoon:"Respostas de discussão corrigidas — em breve.",
     errorNoAnswer:"Por favor escreva pelo menos uma resposta.",
-    errorCheckFailed:"Não foi possível verificar as respostas: "
+    errorCheckFailed:"Não foi possível verificar as respostas: ",
+    discussionLevel1:"⚙️ A melhorar", discussionLevel2:"👍 OK",
+    discussionLevel3:"💪 Sólido", discussionLevel4:"💡 Interessante!"
   },
   nl: {
     name:"Nederlands", flag:"🇳🇱", targetLanguage:"Dutch", htmlLang:"nl",
@@ -445,7 +467,9 @@ const LANGUAGES = {
     mcqCorrect:"✓ Correct! 🎉", mcqIncorrect:"✗ Het juiste antwoord is: ",
     discussionSoon:"Beoordeelde discussieantwoorden — binnenkort beschikbaar.",
     errorNoAnswer:"Schrijf alstublieft ten minste één antwoord.",
-    errorCheckFailed:"Antwoorden konden niet worden gecontroleerd: "
+    errorCheckFailed:"Antwoorden konden niet worden gecontroleerd: ",
+    discussionLevel1:"⚙️ Kan beter", discussionLevel2:"👍 Oké",
+    discussionLevel3:"💪 Sterk", discussionLevel4:"💡 Interessant!"
   }
 };
 
@@ -841,6 +865,12 @@ function renderArticle(d, lang, levelTag, domainLabel, byline, nextLabel) {
     { answer: "", feedback: null },
     { answer: "", feedback: null },
   ];
+  savedDiscussion = [
+    { answer: "", feedback: null },
+    { answer: "", feedback: null },
+    { answer: "", feedback: null },
+    { answer: "", feedback: null },
+  ];
   renderVocab(d.vocab || []);
   document.getElementById("articleBody").innerHTML = (d.paragraphs || []).slice(0, 4).map(p => `<p>${escapeHtml(p)}</p>`).join("");
   renderQuestions(d.comprehension || [], d.discussion || []);
@@ -876,6 +906,12 @@ currentExerciseStage = currentMCQs.length > 0 ? "mcq" : "comprehension";
   currentMCQIndex      = 0;
   mcqResults           = [null, null, null, null];
   savedComprehension   = [
+    { answer: "", feedback: null },
+    { answer: "", feedback: null },
+    { answer: "", feedback: null },
+    { answer: "", feedback: null },
+  ];
+  savedDiscussion = [
     { answer: "", feedback: null },
     { answer: "", feedback: null },
     { answer: "", feedback: null },
@@ -1089,11 +1125,47 @@ function renderComprehensionStage(comp, disc) {
 // renderDiscussionStage shows the discussion questions and a back button
 // to return to the comprehension stage. Left column is a placeholder for
 // the graded discussion response feature (coming soon).
+// captureDiscussion saves textarea values and any visible feedback into
+// savedDiscussion in State before navigating away from the discussion stage.
+function captureDiscussion() {
+  [0, 1, 2, 3].forEach(i => {
+    const textarea   = document.getElementById("disc-answer-" + i);
+    const feedbackEl = document.getElementById("disc-feedback-" + i);
+    savedDiscussion[i] = {
+      answer: textarea ? textarea.value : "",
+      feedback: (feedbackEl && feedbackEl.style.display !== "none")
+        ? {
+            level:    parseInt(feedbackEl.dataset.level || "0"),
+            feedback: feedbackEl.querySelector(".disc-feedback-text")?.textContent || ""
+          }
+        : null,
+    };
+  });
+}
+
+// restoreDiscussionFeedback applies level class, label, and feedback text
+// to a feedback element. Used by both the restore path (navigating back)
+// and the fresh submission path so rendering logic is never duplicated.
+function restoreDiscussionFeedback(el, level, feedbackText, lang) {
+  const labelMap = {
+    1: lang.discussionLevel1,
+    2: lang.discussionLevel2,
+    3: lang.discussionLevel3,
+    4: lang.discussionLevel4,
+  };
+  el.className     = `discussion-feedback discussion-level-${level}`;
+  el.dataset.level = level;
+  el.querySelector(".disc-feedback-label").textContent = (labelMap[level] || "") + " — ";
+  el.querySelector(".disc-feedback-text").textContent  = feedbackText;
+  el.style.display = "block";
+}
+
+// renderDiscussionStage renders discussion questions with answer textareas,
+// a submit button, and inline level feedback after submission.
+// Restores saved state if the user navigates back and returns.
 function renderDiscussionStage(disc) {
-  // Single column — left block has nothing to show during placeholder phase.
   const row    = document.querySelector(".questions-row");
   const blocks = row.querySelectorAll(".questions-block");
-  // blocks[0] = comprehension (left), blocks[1] = discussion (right)
   row.style.gridTemplateColumns = "1fr";
   blocks[0].style.display = "none";
   blocks[1].style.display = "";
@@ -1101,20 +1173,46 @@ function renderDiscussionStage(disc) {
   document.getElementById("comprehensionList").innerHTML = "";
 
   const lang = LANGUAGES[currentLang];
+
   document.getElementById("discussionList").innerHTML =
     `<button class="check-btn" id="backToCompBtn" style="margin-bottom:1rem">${escapeHtml(lang.btnBackComprehension)}</button>` +
     disc.slice(0, 4).map((q, i) =>
-      `<div class="q-item"><span class="q-num">${i + 1}</span><span class="q-text">${escapeHtml(q)}</span></div>`
+      `<div class="q-item" id="disc-item-${i}">
+        <span class="q-num">${i + 1}</span>
+        <div class="q-item-inner">
+          <span class="q-text">${escapeHtml(q)}</span>
+          <textarea class="answer-textarea" id="disc-answer-${i}" placeholder="${escapeHtml(lang.discussionPlaceholder)}"></textarea>
+          <div class="discussion-feedback" id="disc-feedback-${i}" data-level="0">
+            <span class="disc-feedback-label"></span>
+            <span class="disc-feedback-text"></span>
+          </div>
+        </div>
+      </div>`
     ).join("") +
-    `<div class="coming-soon" style="margin-top:1rem">${escapeHtml(lang.discussionSoon)}</div>`;
+    `<div class="check-row">
+      <button class="check-btn" id="checkDiscBtn">${escapeHtml(lang.btnCheckDiscussion)}</button>
+      <span class="check-hint" id="checkDiscHint"></span>
+    </div>`;
 
+  // Restore saved state if returning from comprehension.
+  [0, 1, 2, 3].forEach(i => {
+    const saved      = savedDiscussion[i];
+    const textarea   = document.getElementById("disc-answer-" + i);
+    const feedbackEl = document.getElementById("disc-feedback-" + i);
+    if (textarea) textarea.value = saved.answer;
+    if (feedbackEl && saved.feedback) {
+      restoreDiscussionFeedback(feedbackEl, saved.feedback.level, saved.feedback.feedback, lang);
+    }
+  });
 
   document.getElementById("backToCompBtn").addEventListener("click", () => {
-    // Restore both blocks before going back — comprehension stage manages its own visibility.
+    captureDiscussion();
     blocks[0].style.display = "";
     currentExerciseStage = "comprehension";
     renderComprehensionStage(currentQuestions, currentDiscussion);
   });
+
+  document.getElementById("checkDiscBtn").addEventListener("click", checkDiscussionAnswers);
 }
 
 function showArticle() {
@@ -1421,8 +1519,8 @@ async function checkAnswers() {
     return;
   }
 
-  btn.disabled    = true;
-  btn.textContent = "…";
+  btn.disabled     = true;
+  btn.textContent  = "…";
   hint.textContent = "";
 
   [0, 1, 2, 3].forEach(i => {
@@ -1431,7 +1529,7 @@ async function checkAnswers() {
   });
 
   try {
-    const res  = await fetch(PROXY_URL + "/correct", {
+    const res = await fetch(PROXY_URL + "/correct", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify({
@@ -1453,11 +1551,68 @@ async function checkAnswers() {
       el.style.display = "block";
     });
 
-} catch(e) {
+  } catch(e) {
     hint.textContent = lang.errorCheckFailed + e.message;
   } finally {
     btn.disabled    = false;
     btn.textContent = LANGUAGES[currentLang].btnCheckAnswers;
+  }
+}
+
+// checkDiscussionAnswers submits the student's discussion responses to
+// the worker's /correct route with mode:"discussion" and renders
+// quality level feedback inline per question.
+async function checkDiscussionAnswers() {
+  const btn  = document.getElementById("checkDiscBtn");
+  const hint = document.getElementById("checkDiscHint");
+  const lang = LANGUAGES[currentLang];
+
+  const answers = [0, 1, 2, 3].map(i => {
+    const el = document.getElementById("disc-answer-" + i);
+    return el ? el.value.trim() : "";
+  });
+
+  if (answers.every(a => a === "")) {
+    hint.textContent = lang.errorNoAnswer;
+    return;
+  }
+
+  btn.disabled     = true;
+  btn.textContent  = "…";
+  hint.textContent = "";
+
+  [0, 1, 2, 3].forEach(i => {
+    const el = document.getElementById("disc-feedback-" + i);
+    if (el) { el.style.display = "none"; el.className = "discussion-feedback"; }
+  });
+
+  try {
+    const res = await fetch(PROXY_URL + "/correct", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({
+        lang:      lang.targetLanguage,
+        context:   currentContext,
+        questions: currentDiscussion,
+        answers,
+        mode:      "discussion",
+      }),
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    data.results.forEach((result, i) => {
+      const el = document.getElementById("disc-feedback-" + i);
+      if (!el) return;
+      restoreDiscussionFeedback(el, result.level, result.feedback, lang);
+    });
+
+  } catch(e) {
+    hint.textContent = lang.errorCheckFailed + e.message;
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = lang.btnCheckDiscussion;
   }
 }
 
