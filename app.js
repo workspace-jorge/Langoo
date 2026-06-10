@@ -1040,17 +1040,20 @@ function renderComprehensionStage(comp, disc) {
 // to return to the comprehension stage. Left column is a placeholder for
 // the graded discussion response feature (coming soon).
 function renderDiscussionStage(disc) {
-  // Restore both columns — discussion questions go in the right column.
-  document.querySelector(".questions-row").style.gridTemplateColumns = "";
+  // Keep single-column layout — left column has nothing to show yet.
+  // When graded discussion responses are built, restore the grid here.
+  document.querySelector(".questions-row").style.gridTemplateColumns = "1fr";
   document.getElementById("discussionList").closest(".questions-block").style.display = "";
 
-  document.getElementById("comprehensionList").innerHTML =
-    `<button class="check-btn" id="backToCompBtn" style="margin-bottom:1rem">← Comprehension</button>
-     <div class="coming-soon">Graded discussion responses coming soon.</div>`;
+  // Left column hidden — all content goes in the right (discussionList) column.
+  document.getElementById("comprehensionList").innerHTML = "";
 
-  document.getElementById("discussionList").innerHTML = disc.slice(0, 4).map((q, i) =>
-    `<div class="q-item"><span class="q-num">${i + 1}</span><span class="q-text">${escapeHtml(q)}</span></div>`
-  ).join("");
+  document.getElementById("discussionList").innerHTML =
+    `<button class="check-btn" id="backToCompBtn" style="margin-bottom:1rem">← Comprehension</button>` +
+    disc.slice(0, 4).map((q, i) =>
+      `<div class="q-item"><span class="q-num">${i + 1}</span><span class="q-text">${escapeHtml(q)}</span></div>`
+    ).join("") +
+    `<div class="coming-soon" style="margin-top:1rem">Graded discussion responses coming soon.</div>`;
 
   document.getElementById("backToCompBtn").addEventListener("click", () => {
     currentExerciseStage = "comprehension";
